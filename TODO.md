@@ -1,0 +1,3 @@
+- [x] Create Python virtual environment in the current directory
+- [x] Activate virtual environment and install Django using pip
+- [x] Start a new Django project named 'nuit_info' in the current directory
