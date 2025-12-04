@@ -143,3 +143,85 @@ def get_dashboard_data(request):
         return JsonResponse(data, status=200)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+def hardware_view(request):
+    # Récupérer les dernières données matérielles
+    latest_data = IoTData.objects.order_by('-created_at')[:10]
+
+    # Préparer les données pour les graphiques matériels
+    labels = [str(data.created_at.strftime('%H:%M:%S')) for data in reversed(latest_data)]
+    cpu_data = [data.cpu_usage for data in reversed(latest_data)]
+    ram_data = [data.ram_usage for data in reversed(latest_data)]
+    battery_data = [data.battery_health for data in reversed(latest_data)]
+    age_data = [data.age_years for data in reversed(latest_data)]
+
+    context = {
+        'latest_data': latest_data,
+        'chart_labels': json.dumps(labels),
+        'cpu_data': json.dumps(cpu_data),
+        'ram_data': json.dumps(ram_data),
+        'battery_data': json.dumps(battery_data),
+        'age_data': json.dumps(age_data),
+    }
+    return render(request, 'iot/hardware.html', context)
+
+def energy_view(request):
+    # Récupérer les dernières données énergétiques
+    latest_data = IoTData.objects.order_by('-created_at')[:10]
+
+    # Préparer les données pour les graphiques énergétiques
+    labels = [str(data.created_at.strftime('%H:%M:%S')) for data in reversed(latest_data)]
+    power_data = [data.power_watts for data in reversed(latest_data)]
+    co2_data = [data.co2_equiv_g for data in reversed(latest_data)]
+    overheating_data = [data.overheating for data in reversed(latest_data)]
+    active_devices_data = [data.active_devices for data in reversed(latest_data)]
+
+    context = {
+        'latest_data': latest_data,
+        'chart_labels': json.dumps(labels),
+        'power_data': json.dumps(power_data),
+        'co2_data': json.dumps(co2_data),
+        'overheating_data': json.dumps(overheating_data),
+        'active_devices_data': json.dumps(active_devices_data),
+    }
+    return render(request, 'iot/energy.html', context)
+
+def network_view(request):
+    # Récupérer les dernières données réseau
+    latest_data = IoTData.objects.order_by('-created_at')[:10]
+
+    # Préparer les données pour les graphiques réseau
+    labels = [str(data.created_at.strftime('%H:%M:%S')) for data in reversed(latest_data)]
+    network_load_data = [data.network_load_mbps for data in reversed(latest_data)]
+    requests_data = [data.requests_per_min for data in reversed(latest_data)]
+    cloud_dependency_data = [data.cloud_dependency_score for data in reversed(latest_data)]
+
+    context = {
+        'latest_data': latest_data,
+        'chart_labels': json.dumps(labels),
+        'network_load_data': json.dumps(network_load_data),
+        'requests_data': json.dumps(requests_data),
+        'cloud_dependency_data': json.dumps(cloud_dependency_data),
+    }
+    return render(request, 'iot/network.html', context)
+
+def scores_view(request):
+    # Récupérer les dernières données de scores
+    latest_data = IoTData.objects.order_by('-created_at')[:10]
+
+    # Préparer les données pour les graphiques de scores
+    labels = [str(data.created_at.strftime('%H:%M:%S')) for data in reversed(latest_data)]
+    eco_data = [data.eco_score for data in reversed(latest_data)]
+    obsolescence_data = [data.obsolescence_score for data in reversed(latest_data)]
+    bigtech_data = [data.bigtech_dependency for data in reversed(latest_data)]
+    co2_savings_data = [data.co2_savings_kg_year for data in reversed(latest_data)]
+
+    context = {
+        'latest_data': latest_data,
+        'chart_labels': json.dumps(labels),
+        'eco_data': json.dumps(eco_data),
+        'obsolescence_data': json.dumps(obsolescence_data),
+        'bigtech_data': json.dumps(bigtech_data),
+        'co2_savings_data': json.dumps(co2_savings_data),
+    }
+    return render(request, 'iot/scores.html', context)
