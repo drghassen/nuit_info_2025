@@ -8,6 +8,7 @@ urlpatterns = [
     path('energy/', views.energy_view, name='energy'),
     path('network/', views.network_view, name='network'),
     path('scores/', views.scores_view, name='scores'),
+    path('quiz/', views.quiz_view, name='quiz'),
     path('api/latest-data/', views.get_latest_data, name='get_latest_data'),
     path('api/dashboard-data/', views.get_dashboard_data, name='get_dashboard_data'),
 ]

@@ -225,3 +225,7 @@ def scores_view(request):
         'co2_savings_data': json.dumps(co2_savings_data),
     }
     return render(request, 'iot/scores.html', context)
+
+
+def quiz_view(request):
+    return render(request, 'iot/quiz.html')
