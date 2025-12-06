@@ -147,47 +147,83 @@
         }
     }
 
-    // Rafraîchir les données depuis l'API
-    async function refreshNetworkData() {
-        try {
-            const response = await fetch('/api/network-data/');
-            if (response.ok) {
-                const data = await response.json();
-
-                chartLabels = data.chart_labels || [];
-                networkLoadData = data.network_load_data || [];
-                requestsData = data.requests_data || [];
-                cloudDependencyData = data.cloud_dependency_data || [];
-
-                updateAveragesFromAPI(data);
-                initializeCharts();
-                updateTable(data.latest_data || []);
-
-                if (typeof DOMUtils !== 'undefined') {
-                    DOMUtils.updateLastUpdateTime();
-                } else {
-                    document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
-                }
-            }
-        } catch (error) {
-            console.error('Erreur lors du rafraîchissement des données réseau:', error);
+    // Traitement des données reçues via WebSocket
+    function processWebSocketData(data) {
+        if (data.type === 'initial_data') {
+            chartLabels = data.chart_labels || [];
+            networkLoadData = data.network_load_data || [];
+            requestsData = data.requests_data || [];
+            cloudDependencyData = data.cloud_dependency_data || [];
+            
+            if (data.avg_network_load !== undefined) DOMUtils.updateText('avg-network-load', data.avg_network_load + ' Mbps');
+            if (data.avg_requests !== undefined) DOMUtils.updateText('avg-requests', data.avg_requests);
+            if (data.avg_cloud !== undefined) DOMUtils.updateText('avg-cloud', data.avg_cloud);
+            
+            updateTable(data.latest_data || []);
+        } else if (data.type === 'new_data') {
+            const newData = data.data;
+            const timeLabel = new Date(newData.created_at).toLocaleTimeString('fr-FR');
+            chartLabels.push(timeLabel);
+            if (chartLabels.length > 10) chartLabels.shift();
+            
+            networkLoadData.push(newData.network_load_mbps);
+            if (networkLoadData.length > 10) networkLoadData.shift();
+            requestsData.push(newData.requests_per_min);
+            if (requestsData.length > 10) requestsData.shift();
+            cloudDependencyData.push(newData.cloud_dependency_score);
+            if (cloudDependencyData.length > 10) cloudDependencyData.shift();
+            
+            updateTable([{
+                id: newData.id,
+                network_sensor_id: newData.network_sensor_id || '',
+                network_load_mbps: newData.network_load_mbps,
+                requests_per_min: newData.requests_per_min,
+                cloud_dependency_score: newData.cloud_dependency_score,
+                created_at: new Date(newData.created_at).toLocaleString('fr-FR')
+            }]);
+        }
+        
+        updateAverages();
+        initializeCharts();
+        if (typeof DOMUtils !== 'undefined') {
+            DOMUtils.updateLastUpdateTime();
+        } else {
+            const updateElem = document.getElementById('last-update');
+            if (updateElem) updateElem.textContent = new Date().toLocaleTimeString('fr-FR');
         }
     }
 
-    // Initialisation au chargement de la page
+    let wsClient = null;
+    function initWebSocket() {
+        if (typeof WebSocketClient === 'undefined') {
+            console.error('WebSocketClient n\'est pas défini.');
+            return;
+        }
+        wsClient = new WebSocketClient('/ws/network/', {
+            onOpen: () => console.log('WebSocket connecté pour la page réseau'),
+            onMessage: (data) => processWebSocketData(data),
+            onError: (error) => console.error('Erreur WebSocket:', error),
+            onClose: () => console.log('WebSocket fermé, tentative de reconnexion...')
+        });
+        wsClient.connect();
+    }
+
+    function cleanup() {
+        if (wsClient) wsClient.disconnect();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         initDataFromTemplate();
         updateAverages();
         initializeCharts();
-        
         if (typeof DOMUtils !== 'undefined') {
             DOMUtils.updateLastUpdateTime();
         } else {
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
+            const updateElem = document.getElementById('last-update');
+            if (updateElem) updateElem.textContent = new Date().toLocaleTimeString('fr-FR');
         }
-
-        // Rafraîchissement automatique toutes les 1.5 secondes
-        setInterval(refreshNetworkData, 1500);
+        initWebSocket();
     });
+    window.addEventListener('beforeunload', cleanup);
 })();
 

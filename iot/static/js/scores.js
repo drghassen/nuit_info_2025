@@ -108,46 +108,46 @@
                 }
             };
 
-            Object.values(charts).forEach(c => c.destroy());
-            charts = {};
+        Object.values(charts).forEach(c => c.destroy());
+        charts = {};
 
-            if (chartLabels.length) {
+        if (chartLabels.length) {
                 const createChart = (id, type, datasets, options = commonOptions) => {
                     const ctx = document.getElementById(id).getContext('2d');
                     return new Chart(ctx, { type, data: { labels: chartLabels, datasets }, options });
                 };
 
-                charts.ecoChart = createChart('ecoChart', 'line', [{
-                    label: 'Score Écologique',
-                    data: ecoData,
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16,185,129,0.2)',
-                    fill: true,
-                    tension: 0.4
-                }]);
-                charts.obsolescenceChart = createChart('obsolescenceChart', 'bar', [{
-                    label: "Score d'Obsolescence",
-                    data: obsolescenceData,
-                    backgroundColor: '#f59e0b'
-                }]);
-                charts.bigtechChart = createChart('bigtechChart', 'line', [{
-                    label: 'Dépendance BigTech',
-                    data: bigtechData,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239,68,68,0.2)',
-                    fill: true,
-                    tension: 0.4
-                }]);
-                charts.co2SavingsChart = createChart('co2SavingsChart', 'line', [{
-                    label: 'Économies CO₂ (kg/an)',
-                    data: co2SavingsData,
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34,197,94,0.2)',
-                    fill: true,
-                    tension: 0.4
-                }]);
-            }
+            charts.ecoChart = createChart('ecoChart', 'line', [{
+                label: 'Score Écologique',
+                data: ecoData,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16,185,129,0.2)',
+                fill: true,
+                tension: 0.4
+            }]);
+            charts.obsolescenceChart = createChart('obsolescenceChart', 'bar', [{
+                label: "Score d'Obsolescence",
+                data: obsolescenceData,
+                backgroundColor: '#f59e0b'
+            }]);
+            charts.bigtechChart = createChart('bigtechChart', 'line', [{
+                label: 'Dépendance BigTech',
+                data: bigtechData,
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239,68,68,0.2)',
+                fill: true,
+                tension: 0.4
+            }]);
+            charts.co2SavingsChart = createChart('co2SavingsChart', 'line', [{
+                label: 'Économies CO₂ (kg/an)',
+                data: co2SavingsData,
+                borderColor: '#22c55e',
+                backgroundColor: 'rgba(34,197,94,0.2)',
+                fill: true,
+                tension: 0.4
+            }]);
         }
+    }
     }
 
     // Mettre à jour le tableau
@@ -172,47 +172,86 @@
         }
     }
 
-    // Rafraîchir les données depuis l'API
-    async function refreshScoresData() {
-        try {
-            const response = await fetch('/api/scores-data/');
-            if (response.ok) {
-                const data = await response.json();
+    // Traitement des données reçues via WebSocket
+    function processWebSocketData(data) {
+        if (data.type === 'initial_data') {
+            chartLabels = data.chart_labels || [];
+            ecoData = data.eco_data || [];
+            obsolescenceData = data.obsolescence_data || [];
+            bigtechData = data.bigtech_data || [];
+            co2SavingsData = data.co2_savings_data || [];
+            
+            if (data.avg_eco !== undefined) DOMUtils.updateText('avg-eco', data.avg_eco);
+            if (data.avg_obsolescence !== undefined) DOMUtils.updateText('avg-obsolescence', data.avg_obsolescence);
+            if (data.avg_bigtech !== undefined) DOMUtils.updateText('avg-bigtech', data.avg_bigtech);
+            if (data.avg_co2_savings !== undefined) DOMUtils.updateText('avg-co2-savings', data.avg_co2_savings + ' kg/an');
+            
+            updateTable(data.latest_data || []);
+        } else if (data.type === 'new_data') {
+            const newData = data.data;
+            const timeLabel = new Date(newData.created_at).toLocaleTimeString('fr-FR');
+            chartLabels.push(timeLabel);
+            if (chartLabels.length > 10) chartLabels.shift();
+            
+            ecoData.push(newData.eco_score);
+            if (ecoData.length > 10) ecoData.shift();
+            obsolescenceData.push(newData.obsolescence_score);
+            if (obsolescenceData.length > 10) obsolescenceData.shift();
+            bigtechData.push(newData.bigtech_dependency);
+            if (bigtechData.length > 10) bigtechData.shift();
+            co2SavingsData.push(newData.co2_savings_kg_year);
+            if (co2SavingsData.length > 10) co2SavingsData.shift();
+            
+            updateTable([{
+                id: newData.id,
+                eco_score: newData.eco_score,
+                obsolescence_score: newData.obsolescence_score,
+                bigtech_dependency: newData.bigtech_dependency,
+                co2_savings_kg_year: newData.co2_savings_kg_year,
+                created_at: new Date(newData.created_at).toLocaleString('fr-FR')
+            }]);
+        }
 
-                chartLabels = data.chart_labels || [];
-                ecoData = data.eco_data || [];
-                obsolescenceData = data.obsolescence_data || [];
-                bigtechData = data.bigtech_data || [];
-                co2SavingsData = data.co2_savings_data || [];
-
-                updateAveragesFromAPI(data);
-                initializeCharts();
-                updateTable(data.latest_data || []);
-
-                if (typeof DOMUtils !== 'undefined') {
-                    DOMUtils.updateLastUpdateTime();
-                } else {
-                    document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
-                }
-            }
-        } catch (error) {
-            console.error('Erreur lors du rafraîchissement des données de scores:', error);
+    updateAverages();
+    initializeCharts();
+        if (typeof DOMUtils !== 'undefined') {
+            DOMUtils.updateLastUpdateTime();
+        } else {
+            const updateElem = document.getElementById('last-update');
+            if (updateElem) updateElem.textContent = new Date().toLocaleTimeString('fr-FR');
         }
     }
 
-    // Initialisation au chargement de la page
+    let wsClient = null;
+    function initWebSocket() {
+        if (typeof WebSocketClient === 'undefined') {
+            console.error('WebSocketClient n\'est pas défini.');
+            return;
+        }
+        wsClient = new WebSocketClient('/ws/scores/', {
+            onOpen: () => console.log('WebSocket connecté pour la page scores'),
+            onMessage: (data) => processWebSocketData(data),
+            onError: (error) => console.error('Erreur WebSocket:', error),
+            onClose: () => console.log('WebSocket fermé, tentative de reconnexion...')
+        });
+        wsClient.connect();
+    }
+
+    function cleanup() {
+        if (wsClient) wsClient.disconnect();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         initDataFromTemplate();
         updateAverages();
         initializeCharts();
-        
         if (typeof DOMUtils !== 'undefined') {
             DOMUtils.updateLastUpdateTime();
         } else {
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
+            const updateElem = document.getElementById('last-update');
+            if (updateElem) updateElem.textContent = new Date().toLocaleTimeString('fr-FR');
         }
-
-        // Rafraîchissement automatique toutes les 1.5 secondes
-        setInterval(refreshScoresData, 1500);
+        initWebSocket();
     });
+    window.addEventListener('beforeunload', cleanup);
 })();

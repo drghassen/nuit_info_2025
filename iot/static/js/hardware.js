@@ -101,31 +101,31 @@
         } else {
             // Fallback si utils.js n'est pas chargé
             const commonOptions = {
-                responsive: true,
+        responsive: true,
                 plugins: { legend: { labels: { color: '#e2e8f0' } } },
-                scales: {
+        scales: {
                     x: { ticks: { color: '#94a3b8' }},
                     y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-                }
-            };
+        }
+    };
 
-            Object.values(charts).forEach(c => c.destroy());
-            charts = {};
+        Object.values(charts).forEach(c => c.destroy());
+        charts = {};
 
-            if (chartLabels.length) {
+        if (chartLabels.length) {
                 const createChart = (id, type, datasets, options = commonOptions) => {
                     const ctx = document.getElementById(id).getContext('2d');
                     return new Chart(ctx, { type, data: { labels: chartLabels, datasets }, options });
                 };
 
-                charts.cpuRamChart = createChart('cpuRamChart', 'line', [
-                    { label: 'CPU (%)', data: cpuData, borderColor: '#4361ee', backgroundColor: 'rgba(67,97,238,0.2)', fill: true, tension: 0.4 },
-                    { label: 'RAM (%)', data: ramData, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.2)', fill: true, tension: 0.4 }
-                ]);
-                charts.batteryChart = createChart('batteryChart', 'bar', [{ label: 'Santé Batterie (%)', data: batteryData, backgroundColor: '#10b981' }]);
-                charts.ageChart = createChart('ageChart', 'line', [{ label: 'Âge (années)', data: ageData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.2)', fill: true, tension: 0.4 }]);
-            }
+            charts.cpuRamChart = createChart('cpuRamChart', 'line', [
+                { label: 'CPU (%)', data: cpuData, borderColor: '#4361ee', backgroundColor: 'rgba(67,97,238,0.2)', fill: true, tension: 0.4 },
+                { label: 'RAM (%)', data: ramData, borderColor: '#38bdf8', backgroundColor: 'rgba(56,189,248,0.2)', fill: true, tension: 0.4 }
+            ]);
+            charts.batteryChart = createChart('batteryChart', 'bar', [{ label: 'Santé Batterie (%)', data: batteryData, backgroundColor: '#10b981' }]);
+            charts.ageChart = createChart('ageChart', 'line', [{ label: 'Âge (années)', data: ageData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.2)', fill: true, tension: 0.4 }]);
         }
+    }
     }
 
     // Mettre à jour le tableau
@@ -150,47 +150,87 @@
         }
     }
 
-    // Rafraîchir les données depuis l'API
-    async function refreshHardwareData() {
-        try {
-            const response = await fetch('/api/hardware-data/');
-            if (response.ok) {
-                const data = await response.json();
-
-                chartLabels = data.chart_labels || [];
-                cpuData = data.cpu_data || [];
-                ramData = data.ram_data || [];
-                batteryData = data.battery_data || [];
-                ageData = data.age_data || [];
-
-                updateAveragesFromAPI(data);
-                initializeCharts();
-                updateTable(data.latest_data || []);
-
-                if (typeof DOMUtils !== 'undefined') {
-                    DOMUtils.updateLastUpdateTime();
-                } else {
-                    document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
-                }
-            }
-        } catch (error) {
-            console.error('Erreur lors du rafraîchissement des données matérielles:', error);
+    // Traitement des données reçues via WebSocket
+    function processWebSocketData(data) {
+        if (data.type === 'initial_data') {
+            chartLabels = data.chart_labels || [];
+            cpuData = data.cpu_data || [];
+            ramData = data.ram_data || [];
+            batteryData = data.battery_data || [];
+            ageData = data.age_data || [];
+            
+            if (data.avg_cpu !== undefined) DOMUtils.updateText('avg-cpu', data.avg_cpu + '%');
+            if (data.avg_ram !== undefined) DOMUtils.updateText('avg-ram', data.avg_ram + '%');
+            if (data.avg_battery !== undefined) DOMUtils.updateText('avg-battery', data.avg_battery + '%');
+            if (data.avg_age !== undefined) DOMUtils.updateText('avg-age', data.avg_age + ' ans');
+            
+            updateTable(data.latest_data || []);
+        } else if (data.type === 'new_data') {
+            const newData = data.data;
+            const timeLabel = new Date(newData.created_at).toLocaleTimeString('fr-FR');
+            chartLabels.push(timeLabel);
+            if (chartLabels.length > 10) chartLabels.shift();
+            
+            cpuData.push(newData.cpu_usage);
+            if (cpuData.length > 10) cpuData.shift();
+            ramData.push(newData.ram_usage);
+            if (ramData.length > 10) ramData.shift();
+            batteryData.push(newData.battery_health);
+            if (batteryData.length > 10) batteryData.shift();
+            ageData.push(newData.age_years);
+            if (ageData.length > 10) ageData.shift();
+            
+            updateTable([{
+                id: newData.id,
+                hardware_sensor_id: newData.hardware_sensor_id,
+                cpu_usage: newData.cpu_usage,
+                ram_usage: newData.ram_usage,
+                battery_health: newData.battery_health,
+                age_years: newData.age_years,
+                created_at: new Date(newData.created_at).toLocaleString('fr-FR')
+            }]);
         }
-    }
-
-    // Initialisation au chargement de la page
-    document.addEventListener('DOMContentLoaded', function() {
-        initDataFromTemplate();
+        
         updateAverages();
         initializeCharts();
-        
         if (typeof DOMUtils !== 'undefined') {
             DOMUtils.updateLastUpdateTime();
         } else {
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
-        }
+            const updateElem = document.getElementById('last-update');
+            if (updateElem) updateElem.textContent = new Date().toLocaleTimeString('fr-FR');
+    }
+    }
 
-        // Rafraîchissement automatique toutes les 1.5 secondes
-        setInterval(refreshHardwareData, 1500);
+    let wsClient = null;
+    function initWebSocket() {
+        if (typeof WebSocketClient === 'undefined') {
+            console.error('WebSocketClient n\'est pas défini.');
+            return;
+        }
+        wsClient = new WebSocketClient('/ws/hardware/', {
+            onOpen: () => console.log('WebSocket connecté pour la page matériel'),
+            onMessage: (data) => processWebSocketData(data),
+            onError: (error) => console.error('Erreur WebSocket:', error),
+            onClose: () => console.log('WebSocket fermé, tentative de reconnexion...')
+        });
+        wsClient.connect();
+    }
+
+    function cleanup() {
+        if (wsClient) wsClient.disconnect();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initDataFromTemplate();
+    updateAverages();
+    initializeCharts();
+        if (typeof DOMUtils !== 'undefined') {
+            DOMUtils.updateLastUpdateTime();
+        } else {
+            const updateElem = document.getElementById('last-update');
+            if (updateElem) updateElem.textContent = new Date().toLocaleTimeString('fr-FR');
+        }
+        initWebSocket();
     });
+    window.addEventListener('beforeunload', cleanup);
 })();

@@ -300,33 +300,101 @@ function checkThresholds(row) {
     }
 }
 
-// Rafraîchissement des données
-async function refreshData() {
-    try {
-        const res = await fetch('/api/api/dashboard-data/');
-        if (res.ok) {
-            const data = await res.json();
-            ({
-                chart_labels: chartLabels,
-                cpu_data: cpuData,
-                ram_data: ramData,
-                power_data: powerData,
-                eco_data: ecoData,
-                co2_data: co2Data,
-                latest_data: latestData
-            } = data);
-           
-            updateAverages();
-            initCharts();
-            updateTable();
-            updateTime();
-           
-            if(latestData && latestData.length) {
-                checkThresholds(latestData[0]);
-            }
+// Traitement des données reçues via WebSocket
+function processWebSocketData(data) {
+    if (data.type === 'initial_data') {
+        // Données initiales
+        chartLabels = data.chart_labels || [];
+        cpuData = data.cpu_data || [];
+        ramData = data.ram_data || [];
+        powerData = data.power_data || [];
+        ecoData = data.eco_data || [];
+        co2Data = data.co2_data || [];
+        latestData = data.latest_data || [];
+        
+        // Mettre à jour les moyennes depuis les données reçues
+        const avgCpuElem = document.getElementById('avg-cpu');
+        const avgRamElem = document.getElementById('avg-ram');
+        const avgPowerElem = document.getElementById('avg-power');
+        const avgEcoElem = document.getElementById('avg-eco');
+        
+        if (avgCpuElem && data.avg_cpu !== undefined) avgCpuElem.textContent = data.avg_cpu + '%';
+        if (avgRamElem && data.avg_ram !== undefined) avgRamElem.textContent = data.avg_ram + '%';
+        if (avgPowerElem && data.avg_power !== undefined) avgPowerElem.textContent = data.avg_power + ' W';
+        if (avgEcoElem && data.avg_eco !== undefined) avgEcoElem.textContent = data.avg_eco;
+    } else if (data.type === 'new_data') {
+        // Nouvelle donnée reçue
+        const newData = data.data;
+        
+        // Ajouter aux tableaux (garder seulement les 10 dernières)
+        const timeLabel = new Date(newData.created_at).toLocaleTimeString('fr-FR');
+        chartLabels.push(timeLabel);
+        if (chartLabels.length > 10) chartLabels.shift();
+        
+        cpuData.push(newData.cpu_usage);
+        if (cpuData.length > 10) cpuData.shift();
+        
+        ramData.push(newData.ram_usage);
+        if (ramData.length > 10) ramData.shift();
+        
+        powerData.push(newData.power_watts);
+        if (powerData.length > 10) powerData.shift();
+        
+        ecoData.push(newData.eco_score);
+        if (ecoData.length > 10) ecoData.shift();
+        
+        co2Data.push(newData.co2_equiv_g);
+        if (co2Data.length > 10) co2Data.shift();
+        
+        // Ajouter au début de latestData
+        latestData.unshift({
+            id: newData.id,
+            hardware_sensor_id: newData.hardware_sensor_id,
+            cpu_usage: newData.cpu_usage,
+            ram_usage: newData.ram_usage,
+            power_watts: newData.power_watts,
+            eco_score: newData.eco_score,
+            created_at: new Date(newData.created_at).toLocaleString('fr-FR')
+        });
+        if (latestData.length > 10) latestData.pop();
+        
+        // Vérifier les seuils
+        checkThresholds(newData);
+    }
+    
+    // Mettre à jour l'interface
+    updateAverages();
+    initCharts();
+    updateTable();
+    updateTime();
+}
+
+// Initialisation WebSocket
+let wsClient = null;
+
+function initWebSocket() {
+    wsClient = new WebSocketClient('/ws/dashboard/', {
+        onOpen: () => {
+            console.log('WebSocket connecté pour le dashboard');
+        },
+        onMessage: (data) => {
+            processWebSocketData(data);
+        },
+        onError: (error) => {
+            console.error('Erreur WebSocket:', error);
+        },
+        onClose: () => {
+            console.log('WebSocket fermé, tentative de reconnexion...');
         }
-    } catch (e) {
-        console.error('Erreur de rafraîchissement des données:', e);
+    });
+    
+    wsClient.connect();
+}
+
+// Fonction de nettoyage
+function cleanup() {
+    if (wsClient) {
+        wsClient.disconnect();
     }
 }
 
@@ -389,7 +457,9 @@ document.addEventListener('DOMContentLoaded', () => {
         notificationSystem.cleanupNotificationCache();
     }, 60000);
     
-    // Rafraîchissement automatique
-    setInterval(refreshData, 1500);
-    refreshData();
+    // Initialiser WebSocket pour les mises à jour en temps réel
+    initWebSocket();
 });
+
+// Nettoyage à la fermeture de la page
+window.addEventListener('beforeunload', cleanup);

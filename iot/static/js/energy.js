@@ -108,10 +108,10 @@
                 }
             };
 
-            Object.values(charts).forEach(c => c.destroy());
-            charts = {};
+        Object.values(charts).forEach(c => c.destroy());
+        charts = {};
 
-            if (chartLabels.length) {
+        if (chartLabels.length) {
                 const createChart = (id, type, datasets, options = commonOptions) => {
                     const ctx = document.getElementById(id).getContext('2d');
                     return new Chart(ctx, { type, data: { labels: chartLabels, datasets }, options });
@@ -120,17 +120,17 @@
                 charts.powerChart = createChart('powerChart', 'bar', [{
                     label: 'Puissance (W)',
                     data: powerData,
-                    backgroundColor: '#f59e0b'
-                }]);
+                backgroundColor: '#f59e0b'
+            }]);
 
-                charts.co2Chart = createChart('co2Chart', 'line', [{
-                    label: 'CO₂ (g)',
-                    data: co2Data,
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239,68,68,0.2)',
-                    fill: true,
-                    tension: 0.4
-                }]);
+            charts.co2Chart = createChart('co2Chart', 'line', [{
+                label: 'CO₂ (g)',
+                data: co2Data,
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239,68,68,0.2)',
+                fill: true,
+                tension: 0.4
+            }]);
 
                 charts.overheatingChart = createChart('overheatingChart', 'line', [{
                     label: 'Température (°C)',
@@ -175,31 +175,110 @@
         }
     }
 
-    // Rafraîchir les données depuis l'API
-    async function refreshEnergyData() {
-        try {
-            const response = await fetch('/api/energy-data/');
-            if (response.ok) {
-                const data = await response.json();
-
-                chartLabels = data.chart_labels || [];
-                powerData = data.power_data || [];
-                co2Data = data.co2_data || [];
-                overheatingData = data.overheating_data || [];
-                activeDevicesData = data.active_devices_data || [];
-
-                updateAveragesFromAPI(data);
-                initializeCharts();
-                updateTable(data.latest_data || []);
-
-                if (typeof DOMUtils !== 'undefined') {
-                    DOMUtils.updateLastUpdateTime();
-                } else {
-                    document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
-                }
+    // Traitement des données reçues via WebSocket
+    function processWebSocketData(data) {
+        if (data.type === 'initial_data') {
+            // Données initiales
+            chartLabels = data.chart_labels || [];
+            powerData = data.power_data || [];
+            co2Data = data.co2_data || [];
+            overheatingData = data.overheating_data || [];
+            activeDevicesData = data.active_devices_data || [];
+            
+            // Mettre à jour les moyennes depuis les données reçues
+            if (data.avg_power !== undefined) {
+                DOMUtils.updateText('avg-power', data.avg_power + ' W');
             }
-        } catch (error) {
-            console.error('Erreur lors du rafraîchissement des données énergétiques:', error);
+            if (data.avg_co2 !== undefined) {
+                DOMUtils.updateText('avg-co2', data.avg_co2 + ' g');
+            }
+            if (data.avg_overheating !== undefined) {
+                DOMUtils.updateText('avg-overheating', data.avg_overheating + ' °C');
+            }
+            if (data.avg_active !== undefined) {
+                DOMUtils.updateText('avg-active', data.avg_active);
+            }
+            
+            updateTable(data.latest_data || []);
+        } else if (data.type === 'new_data') {
+            // Nouvelle donnée reçue
+            const newData = data.data;
+            
+            // Ajouter aux tableaux (garder seulement les 10 dernières)
+            const timeLabel = new Date(newData.created_at).toLocaleTimeString('fr-FR');
+            chartLabels.push(timeLabel);
+            if (chartLabels.length > 10) chartLabels.shift();
+            
+            powerData.push(newData.power_watts);
+            if (powerData.length > 10) powerData.shift();
+            
+            co2Data.push(newData.co2_equiv_g);
+            if (co2Data.length > 10) co2Data.shift();
+            
+            overheatingData.push(newData.overheating);
+            if (overheatingData.length > 10) overheatingData.shift();
+            
+            activeDevicesData.push(newData.active_devices);
+            if (activeDevicesData.length > 10) activeDevicesData.shift();
+            
+            // Ajouter au début de latestData
+            const latestData = [{
+                id: newData.id,
+                energy_sensor_id: newData.energy_sensor_id || '',
+                power_watts: newData.power_watts,
+                co2_equiv_g: newData.co2_equiv_g,
+                overheating: newData.overheating,
+                active_devices: newData.active_devices,
+                created_at: new Date(newData.created_at).toLocaleString('fr-FR')
+            }];
+            updateTable(latestData);
+        }
+        
+        // Mettre à jour l'interface
+    updateAverages();
+    initializeCharts();
+        
+        if (typeof DOMUtils !== 'undefined') {
+            DOMUtils.updateLastUpdateTime();
+        } else {
+            const updateElem = document.getElementById('last-update');
+            if (updateElem) {
+                updateElem.textContent = new Date().toLocaleTimeString('fr-FR');
+            }
+        }
+    }
+
+    // Initialisation WebSocket
+    let wsClient = null;
+
+    function initWebSocket() {
+        if (typeof WebSocketClient === 'undefined') {
+            console.error('WebSocketClient n\'est pas défini. Assurez-vous que websocket-client.js est chargé.');
+            return;
+        }
+        
+        wsClient = new WebSocketClient('/ws/energy/', {
+            onOpen: () => {
+                console.log('WebSocket connecté pour la page énergie');
+            },
+            onMessage: (data) => {
+                processWebSocketData(data);
+            },
+            onError: (error) => {
+                console.error('Erreur WebSocket:', error);
+            },
+            onClose: () => {
+                console.log('WebSocket fermé, tentative de reconnexion...');
+            }
+        });
+        
+        wsClient.connect();
+    }
+
+    // Fonction de nettoyage
+    function cleanup() {
+        if (wsClient) {
+            wsClient.disconnect();
         }
     }
 
@@ -212,10 +291,16 @@
         if (typeof DOMUtils !== 'undefined') {
             DOMUtils.updateLastUpdateTime();
         } else {
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
+            const updateElem = document.getElementById('last-update');
+            if (updateElem) {
+                updateElem.textContent = new Date().toLocaleTimeString('fr-FR');
+            }
         }
 
-        // Rafraîchissement automatique toutes les 1.5 secondes
-        setInterval(refreshEnergyData, 1500);
+        // Initialiser WebSocket pour les mises à jour en temps réel
+        initWebSocket();
     });
+
+    // Nettoyage à la fermeture de la page
+    window.addEventListener('beforeunload', cleanup);
 })();

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -8,8 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/common.css">
-    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="{% static 'css/common.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <style>
         .welcome-banner {
             position: relative;
@@ -502,6 +503,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/websocket-client.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
     <script>
         // ==================== SYSTÈME DE NOTIFICATIONS ====================
         class NotificationSystem {
@@ -1252,41 +1255,10 @@
         function updateTime() {
             document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
         }
-        async function refreshData() {
-            try {
-                const res = await fetch('/api/api/dashboard-data/');
-                if (res.ok) {
-                    const data = await res.json();
-                    ({
-                        chart_labels: chartLabels,
-                        cpu_data: cpuData,
-                        ram_data: ramData,
-                        power_data: powerData,
-                        eco_data: ecoData,
-                        co2_data: co2Data,
-                        latest_data: latestData
-                    } = data);
-                   
-                    updateAverages();
-                    initCharts();
-                    updateTable();
-                    updateTime();
-                   
-                    if(latestData && latestData.length) {
-                        checkThresholds(latestData[0]);
-                    }
-                }
-            } catch (e) {
-                console.error('Erreur de rafraîchissement des données:', e);
-            }
-        }
         // Nettoyage périodique du cache
         setInterval(() => {
             notificationSystem.cleanupNotificationCache();
         }, 60000);
-        // Rafraîchissement automatique
-        setInterval(refreshData, 1500);
-        refreshData();
         // Navigation catégories
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', () => {
