@@ -157,7 +157,67 @@
         }
 
         function updateLastUpdateTime(){ document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR'); }
+
+        // Fonction de rafraîchissement automatique des données réseau
+        async function refreshNetworkData() {
+            try {
+                const response = await fetch('/api/network-data/');
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Mettre à jour les données des graphiques
+                    chartLabels = data.chart_labels || [];
+                    networkLoadData = data.network_load_data || [];
+                    requestsData = data.requests_data || [];
+                    cloudDependencyData = data.cloud_dependency_data || [];
+
+                    // Mettre à jour les moyennes avec les valeurs calculées par l'API
+                    updateAveragesFromAPI(data);
+
+                    // Recréer les graphiques avec les nouvelles données
+                    initializeCharts();
+
+                    // Mettre à jour le tableau
+                    updateTable(data.latest_data || []);
+
+                    // Mettre à jour l'heure de dernière mise à jour
+                    updateLastUpdateTime();
+                }
+            } catch (error) {
+                console.error('Erreur lors du rafraîchissement des données réseau:', error);
+            }
+        }
+
+        function updateAveragesFromAPI(data) {
+            document.getElementById('avg-network-load').textContent = data.avg_network_load + ' Mbps';
+            document.getElementById('avg-requests').textContent = data.avg_requests;
+            document.getElementById('avg-cloud').textContent = data.avg_cloud + '%';
+        }
+
+        function updateTable(latestData) {
+            const tbody = document.getElementById('data-table-body');
+            if (!tbody) return;
+
+            if (latestData && latestData.length > 0) {
+                tbody.innerHTML = latestData.map(data => `
+                    <tr>
+                        <td>${data.id}</td>
+                        <td>${data.network_sensor_id}</td>
+                        <td>${data.network_load_mbps} Mbps</td>
+                        <td>${data.requests_per_min}</td>
+                        <td><span class="badge ${data.cloud_dependency_score > 80 ? 'bg-danger' : data.cloud_dependency_score > 50 ? 'bg-warning' : 'bg-success'}">${data.cloud_dependency_score}%</span></td>
+                        <td>${new Date(data.created_at).toLocaleString('fr-FR')}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 opacity-50">Aucune donnée disponible</td></tr>';
+            }
+        }
+
         updateAverages(); initializeCharts(); updateLastUpdateTime();
+
+        // Rafraîchissement automatique toutes les 1.5 secondes
+        setInterval(refreshNetworkData, 1500);
     </script>
 </body>
 </html>

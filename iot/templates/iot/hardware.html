@@ -168,7 +168,70 @@
         }
 
         function updateLastUpdateTime(){ document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR'); }
+
+        // Fonction de rafraîchissement automatique des données
+        async function refreshHardwareData() {
+            try {
+                const response = await fetch('/api/hardware-data/');
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Mettre à jour les données des graphiques
+                    chartLabels = data.chart_labels || [];
+                    cpuData = data.cpu_data || [];
+                    ramData = data.ram_data || [];
+                    batteryData = data.battery_data || [];
+                    ageData = data.age_data || [];
+
+                    // Mettre à jour les moyennes avec les valeurs calculées par l'API
+                    updateAveragesFromAPI(data);
+
+                    // Recréer les graphiques avec les nouvelles données
+                    initializeCharts();
+
+                    // Mettre à jour le tableau
+                    updateTable(data.latest_data || []);
+
+                    // Mettre à jour l'heure de dernière mise à jour
+                    updateLastUpdateTime();
+                }
+            } catch (error) {
+                console.error('Erreur lors du rafraîchissement des données matérielles:', error);
+            }
+        }
+
+        function updateAveragesFromAPI(data) {
+            document.getElementById('avg-cpu').textContent = data.avg_cpu + '%';
+            document.getElementById('avg-ram').textContent = data.avg_ram + '%';
+            document.getElementById('avg-battery').textContent = data.avg_battery + '%';
+            document.getElementById('avg-age').textContent = data.avg_age + ' ans';
+        }
+
+        function updateTable(latestData) {
+            const tbody = document.getElementById('data-table-body');
+            if (!tbody) return;
+
+            if (latestData && latestData.length > 0) {
+                tbody.innerHTML = latestData.map(data => `
+                    <tr>
+                        <td>${data.id}</td>
+                        <td>${data.hardware_sensor_id}</td>
+                        <td>${data.cpu_usage}%</td>
+                        <td>${data.ram_usage}%</td>
+                        <td><span class="badge ${data.battery_health >= 80 ? 'bg-success' : data.battery_health >= 50 ? 'bg-warning' : 'bg-danger'}">${data.battery_health}%</span></td>
+                        <td>${data.age_years} ans</td>
+                        <td>${new Date(data.created_at).toLocaleString('fr-FR')}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 opacity-50">Aucune donnée disponible</td></tr>';
+            }
+        }
+
         updateAverages(); initializeCharts(); updateLastUpdateTime();
+
+        // Rafraîchissement automatique toutes les 1.5 secondes
+        setInterval(refreshHardwareData, 1500);
     </script>
 </body>
 </html>

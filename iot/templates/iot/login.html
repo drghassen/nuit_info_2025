@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion • EcoTrack IoT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/common.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 1rem;
+        }
+
+        /* Animated background elements */
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: #10b981;
+            border-radius: 50%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 20%;
+            right: 10%;
+            width: 60px;
+            height: 60px;
+            background: #4361ee;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            animation-delay: -5s;
+        }
+
+        .shape:nth-child(3) {
+            bottom: 20%;
+            left: 20%;
+            width: 100px;
+            height: 100px;
+            background: #f59e0b;
+            border-radius: 20px;
+            transform: rotate(45deg);
+            animation-delay: -10s;
+        }
+
+        .shape:nth-child(4) {
+            bottom: 10%;
+            right: 20%;
+            width: 70px;
+            height: 70px;
+            background: #ef4444;
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            animation-delay: -15s;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-30px) rotate(120deg); }
+            66% { transform: translateY(20px) rotate(240deg); }
+            100% { transform: translateY(0px) rotate(360deg); }
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 900px;
+            min-height: 500px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.6s ease-out;
+            overflow: hidden;
+        }
+
+        /* Two-column layout */
+        .left-panel {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(67, 97, 238, 0.1));
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(16,185,129,0.1)"/><circle cx="80" cy="80" r="2" fill="rgba(67,97,238,0.1)"/><circle cx="60" cy="30" r="1" fill="rgba(245,158,11,0.1)"/></svg>');
+            opacity: 0.5;
+        }
+
+        .right-panel {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand-section {
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-text {
+            color: rgba(226, 232, 240, 0.9);
+            font-size: 1.1rem;
+            font-weight: 300;
+            margin-bottom: 2rem;
+            line-height: 1.4;
+        }
+
+        .features-list {
+            margin-top: 2rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            color: rgba(226, 232, 240, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .feature-item i {
+            width: 20px;
+            opacity: 0.8;
+        }
+
+        .form-section {
+            max-width: 320px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            color: #e2e8f0;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-subtitle {
+            color: rgba(226, 232, 240, 0.7);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #4361ee);
+            border-radius: 2px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .brand i {
+            font-size: 2.5rem;
+            color: #10b981;
+            animation: pulse 2s infinite;
+            filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.3));
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .brand span {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .brand span.primary {
+            color: #4361ee;
+            background: linear-gradient(45deg, #4361ee, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-header p {
+            color: rgba(226, 232, 240, 0.9);
+            font-size: 1rem;
+            font-weight: 300;
+            margin-bottom: 0.25rem;
+        }
+
+        .eco-tip {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(67, 97, 238, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .eco-tip::before {
+            content: '💡';
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        .eco-tip h6 {
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .eco-tip p {
+            color: rgba(226, 232, 240, 0.8);
+            font-size: 0.85rem;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .form-label {
+            color: #e2e8f0;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-control::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(67, 97, 238, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #4361ee;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15),
+                        0 6px 24px rgba(67, 97, 238, 0.1);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        .form-control:focus::before {
+            left: 100%;
+        }
+
+        .form-control::placeholder {
+            color: rgba(226, 232, 240, 0.5);
+            font-style: italic;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 0.875rem 2rem;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 36px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
+        .btn-login:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-login i {
+            margin-right: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-login:hover i {
+            transform: scale(1.1);
+        }
+
+        .alert {
+            border-radius: 16px;
+            border: none;
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: currentColor;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #6ee7b7;
+            border-left: 4px solid #10b981;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-text small {
+            color: rgba(226, 232, 240, 0.6);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .footer-text i {
+            color: #10b981;
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Fun surprise element */
+        .surprise-element {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3);
+            z-index: 10;
+        }
+
+        .surprise-element:hover {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 12px 48px rgba(245, 158, 11, 0.4);
+        }
+
+        .surprise-element i {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        /* Responsive breakpoints */
+        @media (max-width: 767px) {
+            .login-container {
+                padding: 0.5rem;
+            }
+
+            .login-card {
+                min-height: auto;
+                max-width: none;
+                margin: 0.5rem;
+            }
+
+            /* Stack columns vertically on mobile */
+            .left-panel,
+            .right-panel {
+                padding: 2rem 1.5rem;
+            }
+
+            .left-panel {
+                order: 2; /* Form comes first on mobile */
+                background: rgba(255, 255, 255, 0.03);
+            }
+
+            .right-panel {
+                order: 1; /* Branding comes second on mobile */
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .brand {
+                gap: 0.5rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .brand span {
+                font-size: 1.5rem;
+            }
+
+            .brand i {
+                font-size: 2rem;
+            }
+
+            .welcome-text {
+                font-size: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .eco-tip {
+                padding: 0.75rem;
+                margin-bottom: 1rem;
+                border-radius: 10px;
+            }
+
+            .eco-tip h6 {
+                font-size: 0.75rem;
+            }
+
+            .eco-tip p {
+                font-size: 0.8rem;
+            }
+
+            .features-list {
+                margin-top: 1.5rem;
+            }
+
+            .feature-item {
+                font-size: 0.85rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .form-section {
+                max-width: none;
+                margin: 0;
+            }
+
+            .form-header {
+                margin-bottom: 1.5rem;
+            }
+
+            .form-title {
+                font-size: 1.5rem;
+            }
+
+            .form-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .form-group {
+                margin-bottom: 1rem;
+            }
+
+            .form-label {
+                font-size: 0.85rem;
+            }
+
+            .form-control {
+                padding: 0.625rem 0.875rem;
+                font-size: 0.9rem;
+                border-radius: 10px;
+            }
+
+            .btn-login {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.95rem;
+                border-radius: 10px;
+                margin-top: 0.75rem;
+            }
+
+            .footer-text {
+                margin-top: 1.5rem;
+                padding-top: 1.5rem;
+            }
+
+            .footer-text small {
+                font-size: 0.75rem;
+            }
+
+            .surprise-element {
+                width: 45px;
+                height: 45px;
+                top: 1rem;
+                right: 1rem;
+            }
+
+            .surprise-element i {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .login-card {
+                max-width: 700px;
+            }
+
+            .left-panel,
+            .right-panel {
+                padding: 2.5rem;
+            }
+
+            .brand span {
+                font-size: 2rem;
+            }
+
+            .brand i {
+                font-size: 2.75rem;
+            }
+
+            .eco-tip {
+                padding: 1.25rem;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .login-card {
+                max-width: 900px;
+            }
+
+            .left-panel,
+            .right-panel {
+                padding: 3rem 2.5rem;
+            }
+        }
+
+        /* Loading animation for form submission */
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="text-light">
+    <!-- Floating background shapes -->
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <!-- Surprise element -->
+    <div class="surprise-element" onclick="showSurprise()" title="Cliquez pour une surprise !">
+        <i class="fas fa-magic"></i>
+    </div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="row g-0 h-100">
+                <!-- Left side - Branding and info -->
+                <div class="col-md-6 left-panel">
+                    <div class="brand-section">
+                        <div class="brand">
+                            <i class="fas fa-leaf"></i>
+                            <span class="fw-bold">EcoTrack <span class="primary">IoT</span></span>
+                        </div>
+                        <p class="welcome-text">🌱 Bienvenue dans votre écosystème IoT intelligent !</p>
+
+                        <!-- Educational tip -->
+                        <div class="eco-tip">
+                            <h6><i class="fas fa-lightbulb me-1"></i>Le saviez-vous ?</h6>
+                            <p id="ecoTipText">Un ordinateur laissé allumé consomme autant d'énergie qu'un réfrigérateur en une journée ! Avec EcoTrack, surveillez et optimisez votre consommation énergétique en temps réel.</p>
+                        </div>
+
+                        <!-- Feature highlights -->
+                        <div class="features-list">
+                            <div class="feature-item">
+                                <i class="fas fa-chart-line text-primary"></i>
+                                <span>Surveillance temps réel</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-leaf text-success"></i>
+                                <span>Impact environnemental</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-shield-alt text-warning"></i>
+                                <span>Sécurité avancée</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-brain text-info"></i>
+                                <span>IA intelligente</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side - Login form -->
+                <div class="col-md-6 right-panel">
+                    <div class="form-section">
+                        <div class="form-header">
+                            <h3 class="form-title">Connexion</h3>
+                            <p class="form-subtitle">Accédez à votre tableau de bord</p>
+                        </div>
+
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="post" id="loginForm">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="username" class="form-label">
+                                    <i class="fas fa-user-circle"></i>Nom d'utilisateur
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                       placeholder="Entrez votre nom d'utilisateur" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-key"></i>Mot de passe
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                       placeholder="Entrez votre mot de passe" required>
+                            </div>
+
+                            <button type="submit" class="btn-login" id="loginBtn">
+                                <i class="fas fa-rocket"></i>Se connecter
+                            </button>
+                        </form>
+
+                        <div class="footer-text">
+                            <small>
+                                <i class="fas fa-cog"></i>
+                                v1.0 • Système IoT Éco-Responsable
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Surprise modal -->
+    <div class="modal fade" id="surpriseModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); color: #e2e8f0;">
+                <div class="modal-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h5 class="modal-title"><i class="fas fa-surprise text-warning me-2"></i>Surprise ! 🎉</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🌍💚🤖</div>
+                    <h4>Vous êtes un héros de l'environnement !</h4>
+                    <p class="mb-3">En surveillant vos appareils IoT, vous contribuez à réduire l'empreinte carbone mondiale. Chaque watt économisé compte !</p>
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <div style="background: rgba(16, 185, 129, 0.2); padding: 1rem; border-radius: 12px;">
+                                <i class="fas fa-tree text-success" style="font-size: 2rem;"></i>
+                                <p class="mb-0 mt-2 small">Arbres sauvés</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div style="background: rgba(67, 97, 238, 0.2); padding: 1rem; border-radius: 12px;">
+                                <i class="fas fa-bolt text-primary" style="font-size: 2rem;"></i>
+                                <p class="mb-0 mt-2 small">Énergie économisée</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div style="background: rgba(245, 158, 11, 0.2); padding: 1rem; border-radius: 12px;">
+                                <i class="fas fa-smile-beam text-warning" style="font-size: 2rem;"></i>
+                                <p class="mb-0 mt-2 small">Planète heureuse</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form submission animation
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
+            btn.innerHTML = '<i class="fas fa-spinner"></i>Connexion en cours...';
+        });
+
+        // Surprise function
+        function showSurprise() {
+            const modal = new bootstrap.Modal(document.getElementById('surpriseModal'));
+            modal.show();
+        }
+
+        // Add some fun interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-dismiss success messages after 5 seconds
+            setTimeout(() => {
+                const successAlerts = document.querySelectorAll('.alert-success');
+                successAlerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+
+            // Auto-dismiss info messages after 7 seconds
+            setTimeout(() => {
+                const infoAlerts = document.querySelectorAll('.alert-info');
+                infoAlerts.forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 7000);
+
+            // Random eco tips
+            const tips = [
+                "Saviez-vous qu'un smartphone chargé consomme plus d'énergie qu'un ordinateur portable ?",
+                "Les appareils IoT représentent 10% de la consommation énergétique mondiale !",
+                "Une optimisation de 20% de votre consommation peut sauver une forêt entière !",
+                "Vos données voyagent à la vitesse de la lumière... mais coûtent cher en énergie !"
+            ];
+
+            // Change tip every 10 seconds
+            let tipIndex = 0;
+            setInterval(() => {
+                const tipElement = document.querySelector('.eco-tip p');
+                tipElement.style.opacity = '0';
+                setTimeout(() => {
+                    tipElement.textContent = tips[tipIndex];
+                    tipElement.style.opacity = '1';
+                    tipIndex = (tipIndex + 1) % tips.length;
+                }, 300);
+            }, 10000);
+
+            // Add hover effects to form controls
+            document.querySelectorAll('.form-control').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+
+            // Animate surprise element periodically
+            setInterval(() => {
+                const surprise = document.querySelector('.surprise-element');
+                surprise.style.animation = 'bounce 1s ease-in-out';
+                setTimeout(() => {
+                    surprise.style.animation = '';
+                }, 1000);
+            }, 15000);
+        });
+
+        // Add bounce animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bounce {
+                0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                40% { transform: translateY(-10px); }
+                60% { transform: translateY(-5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

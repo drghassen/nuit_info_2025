@@ -175,7 +175,70 @@
         }
 
         function updateLastUpdateTime(){ document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR'); }
+
+        // Fonction de rafraîchissement automatique des données énergétiques
+        async function refreshEnergyData() {
+            try {
+                const response = await fetch('/api/energy-data/');
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Mettre à jour les données des graphiques
+                    chartLabels = data.chart_labels || [];
+                    powerData = data.power_data || [];
+                    co2Data = data.co2_data || [];
+                    overheatingData = data.overheating_data || [];
+                    activeDevicesData = data.active_devices_data || [];
+
+                    // Mettre à jour les moyennes avec les valeurs calculées par l'API
+                    updateAveragesFromAPI(data);
+
+                    // Recréer les graphiques avec les nouvelles données
+                    initializeCharts();
+
+                    // Mettre à jour le tableau
+                    updateTable(data.latest_data || []);
+
+                    // Mettre à jour l'heure de dernière mise à jour
+                    updateLastUpdateTime();
+                }
+            } catch (error) {
+                console.error('Erreur lors du rafraîchissement des données énergétiques:', error);
+            }
+        }
+
+        function updateAveragesFromAPI(data) {
+            document.getElementById('avg-power').textContent = data.avg_power + ' W';
+            document.getElementById('avg-co2').textContent = data.avg_co2 + ' g';
+            document.getElementById('avg-overheating').textContent = data.avg_overheating + ' °C';
+            document.getElementById('avg-active').textContent = data.avg_active;
+        }
+
+        function updateTable(latestData) {
+            const tbody = document.getElementById('data-table-body');
+            if (!tbody) return;
+
+            if (latestData && latestData.length > 0) {
+                tbody.innerHTML = latestData.map(data => `
+                    <tr>
+                        <td>${data.id}</td>
+                        <td>${data.energy_sensor_id}</td>
+                        <td>${data.power_watts}W</td>
+                        <td>${data.co2_equiv_g}g</td>
+                        <td><span class="badge ${data.overheating > 80 ? 'bg-danger' : data.overheating > 60 ? 'bg-warning' : 'bg-success'}">${data.overheating}°C</span></td>
+                        <td>${data.active_devices}</td>
+                        <td>${new Date(data.created_at).toLocaleString('fr-FR')}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 opacity-50">Aucune donnée disponible</td></tr>';
+            }
+        }
+
         updateAverages(); initializeCharts(); updateLastUpdateTime();
+
+        // Rafraîchissement automatique toutes les 1.5 secondes
+        setInterval(refreshEnergyData, 1500);
     </script>
 </body>
 </html>
