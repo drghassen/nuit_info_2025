@@ -1,288 +1,120 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoTrack • Scores Éco</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4361ee;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --gray: #64748b;
-            --glass: rgba(255, 255, 255, 0.15);
-            --border: rgba(255, 255, 255, 0.2);
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            color: #e2e8f0;
-            min-height: 100vh;
-            background-attachment: fixed;
-        }
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.4s ease;
-        }
-        .glass-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); }
-        .navbar-custom { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
-        .chart-container { background: rgba(15, 23, 42, 0.6); border-radius: 18px; padding: 1.8rem; border: 1px solid var(--border); }
-        .table-custom { border-radius: 14px; overflow: hidden; background: rgba(15, 23, 42, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .table-custom thead th { background: rgba(67, 97, 238, 0.18); color: #000000; font-weight: 700; border: 0; padding: 0.9rem 1rem; letter-spacing: .2px; backdrop-filter: blur(8px); }
-        .table-custom tbody tr { background: transparent; transition: transform .2s ease, background-color .25s ease, box-shadow .25s ease; }
-        .table-custom tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
-        .table-custom tbody td { padding: 0.75rem 1rem; border-top: 1px solid rgba(255,255,255,0.06); color: #000000; vertical-align: middle; font-weight: 600; }
-        .table-custom tbody tr:hover { background: rgba(67, 97, 238, 0.08); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
-        .metric-big { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px; }
-        .badge { border-radius: 999px; padding: .3rem .6rem; font-weight: 600; font-size: .75rem; border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 -1px 0 rgba(255,255,255,0.06); }
-        .badge.bg-success { background-color: rgba(16,185,129,0.18) !important; color: #34d399; }
-        .badge.bg-warning { background-color: rgba(245,158,11,0.18) !important; color: #fbbf24; }
-        .badge.bg-danger  { background-color: rgba(239,68,68,0.18) !important; color: #f87171; }
-    </style>
-</head>
-<body class="text-light">
-    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold fs-4" href="{% url 'dashboard' %}">
-                <i class="fas fa-leaf text-success me-2"></i>EcoTrack <span class="text-primary">IoT</span>
-            </a>
-            <div class="d-flex align-items-center gap-4">
-                <div class="text-sm">
-                    <i class="fas fa-clock text-warning me-2"></i>
-                    Dernière mise à jour : <span id="last-update" class="fw-semibold">{% now "H:i:s" %}</span>
-                </div>
-                <div class="pulse">
-                    <i class="fas fa-circle text-success fs-6"></i> Live
-                </div>
-            </div>
-        </div>
-    </nav>
+{% extends 'iot/base.html' %}
+{% load static %}
 
-    <div class="container-fluid px-4 py-5">
-        <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold mb-3">
-                Scores <span class="text-primary">Écologiques</span>
-            </h1>
-            <p class="lead opacity-80">Analyse des scores éco, obsolescence, dépendance et économies CO₂</p>
-        </div>
+{% block title %}EcoTrack • Scores Éco{% endblock %}
 
-        <div class="row g-4 mb-4">
-            <div class="col-lg-3 col-md-6">
-                <div class="glass-card p-4 text-center">
-                    <i class="fas fa-leaf fa-2x text-success mb-3"></i>
-                    <p class="mb-1 opacity-75">Score Éco Moyen</p>
-                    <h3 class="metric-big text-success" id="avg-eco">-</h3>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="glass-card p-4 text-center">
-                    <i class="fas fa-clock fa-2x text-warning mb-3"></i>
-                    <p class="mb-1 opacity-75">Obsolescence Moyenne</p>
-                    <h3 class="metric-big text-warning" id="avg-obsolescence">-</h3>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="glass-card p-4 text-center">
-                    <i class="fas fa-building fa-2x text-danger mb-3"></i>
-                    <p class="mb-1 opacity-75">Dépendance BigTech</p>
-                    <h3 class="metric-big text-danger" id="avg-bigtech">-</h3>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="glass-card p-4 text-center">
-                    <i class="fas fa-seedling fa-2x text-success mb-3"></i>
-                    <p class="mb-1 opacity-75">Économies CO₂</p>
-                    <h3 class="metric-big text-success" id="avg-co2-savings">-</h3>
-                </div>
-            </div>
-        </div>
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-5 fw-bold mb-3">Scores <span class="text-primary">Écologiques</span></h1>
+    <p class="lead opacity-80">Analyse des scores éco, obsolescence, dépendance et économies CO₂</p>
+</div>
 
-        <div class="row g-4 mb-4">
-            <div class="col-lg-6">
-                <div class="chart-container glass-card">
-                    <h5 class="mb-3"><i class="fas fa-leaf me-2 text-success"></i>Score Écologique</h5>
-                    <canvas id="ecoChart"></canvas>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="chart-container glass-card">
-                    <h5 class="mb-3"><i class="fas fa-clock me-2 text-warning"></i>Score d'Obsolescence</h5>
-                    <canvas id="obsolescenceChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="row g-4 mb-5">
-            <div class="col-lg-6">
-                <div class="chart-container glass-card">
-                    <h5 class="mb-3"><i class="fas fa-building me-2 text-danger"></i>Dépendance BigTech</h5>
-                    <canvas id="bigtechChart"></canvas>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="chart-container glass-card">
-                    <h5 class="mb-3"><i class="fas fa-seedling me-2 text-success"></i>Économies CO₂ (kg/an)</h5>
-                    <canvas id="co2SavingsChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="glass-card overflow-hidden">
-            <div class="p-4 border-bottom border-white border-opacity-10">
-                <h4 class="mb-0"><i class="fas fa-table me-2 text-primary"></i>Dernières Données de Scores</h4>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-custom table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Sensor ID</th>
-                            <th>Score Éco</th>
-                            <th>Obsolescence</th>
-                            <th>BigTech</th>
-                            <th>Économies CO₂</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-table-body">
-                        {% for data in latest_data %}
-                        <tr>
-                            <td>{{ data.id }}</td>
-                            <td>{{ data.hardware_sensor_id }}</td>
-                            <td>
-                                <span class="badge
-                                    {% if data.eco_score >= 75 %}bg-success
-                                    {% elif data.eco_score >= 50 %}bg-warning
-                                    {% else %}bg-danger
-                                    {% endif %}">{{ data.eco_score }}</span>
-                            </td>
-                            <td>{{ data.obsolescence_score }}</td>
-                            <td>{{ data.bigtech_dependency }}</td>
-                            <td>{{ data.co2_savings_kg_year }} kg/an</td>
-                            <td>{{ data.created_at|date:"d/m/Y H:i" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-5 opacity-50">Aucune donnée disponible</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-leaf fa-2x text-success mb-3"></i>
+            <p class="mb-1 opacity-75">Score Éco Moyen</p>
+            <h3 class="metric-big text-success" id="avg-eco">-</h3>
         </div>
     </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-clock fa-2x text-warning mb-3"></i>
+            <p class="mb-1 opacity-75">Obsolescence Moyenne</p>
+            <h3 class="metric-big text-warning" id="avg-obsolescence">-</h3>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-building fa-2x text-danger mb-3"></i>
+            <p class="mb-1 opacity-75">Dépendance BigTech</p>
+            <h3 class="metric-big text-danger" id="avg-bigtech">-</h3>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-seedling fa-2x text-success mb-3"></i>
+            <p class="mb-1 opacity-75">Économies CO₂</p>
+            <h3 class="metric-big text-success" id="avg-co2-savings">-</h3>
+        </div>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let chartLabels = JSON.parse('{{ chart_labels|escapejs }}' || '[]');
-        let ecoData = JSON.parse('{{ eco_data|escapejs }}' || '[]');
-        let obsolescenceData = JSON.parse('{{ obsolescence_data|escapejs }}' || '[]');
-        let bigtechData = JSON.parse('{{ bigtech_data|escapejs }}' || '[]');
-        let co2SavingsData = JSON.parse('{{ co2_savings_data|escapejs }}' || '[]');
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="chart-container glass-card">
+            <h5 class="mb-3"><i class="fas fa-leaf me-2 text-success"></i>Score Écologique</h5>
+            <canvas id="ecoChart"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-container glass-card">
+            <h5 class="mb-3"><i class="fas fa-clock me-2 text-warning"></i>Score d'Obsolescence</h5>
+            <canvas id="obsolescenceChart"></canvas>
+        </div>
+    </div>
+</div>
+<div class="row g-4 mb-5">
+    <div class="col-lg-6">
+        <div class="chart-container glass-card">
+            <h5 class="mb-3"><i class="fas fa-building me-2 text-danger"></i>Dépendance BigTech</h5>
+            <canvas id="bigtechChart"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-container glass-card">
+            <h5 class="mb-3"><i class="fas fa-seedling me-2 text-success"></i>Économies CO₂ (kg/an)</h5>
+            <canvas id="co2SavingsChart"></canvas>
+        </div>
+    </div>
+</div>
 
-        function calculateAverage(data) { if (!data || data.length === 0) return 0; return (data.reduce((a,b)=>a+b,0)/data.length).toFixed(1); }
-        function updateAverages() {
-            document.getElementById('avg-eco').textContent = calculateAverage(ecoData);
-            document.getElementById('avg-obsolescence').textContent = calculateAverage(obsolescenceData);
-            document.getElementById('avg-bigtech').textContent = calculateAverage(bigtechData);
-            document.getElementById('avg-co2-savings').textContent = calculateAverage(co2SavingsData) + ' kg';
-        }
+<div class="glass-card overflow-hidden">
+    <div class="p-4 border-bottom border-white border-opacity-10">
+        <h4 class="mb-0"><i class="fas fa-table me-2 text-primary"></i>Dernières Données de Scores</h4>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Sensor ID</th>
+                    <th>Score Éco</th>
+                    <th>Obsolescence</th>
+                    <th>BigTech</th>
+                    <th>Économies CO₂</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="data-table-body">
+                {% for data in latest_data %}
+                <tr>
+                    <td>{{ data.id }}</td>
+                    <td>{{ data.hardware_sensor_id }}</td>
+                    <td><span class="badge {% if data.eco_score >= 75 %}bg-success{% elif data.eco_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}">{{ data.eco_score }}</span></td>
+                    <td>{{ data.obsolescence_score }}</td>
+                    <td>{{ data.bigtech_dependency }}</td>
+                    <td>{{ data.co2_savings_kg_year }} kg/an</td>
+                    <td>{{ data.created_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 opacity-50">Aucune donnée disponible</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-        const commonOptions = { responsive: true, plugins: { legend: { labels: { color: '#e2e8f0' } } }, scales: { x: { ticks: { color: '#94a3b8' }}, y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.1)' } } } };
-        function createChart(canvasId, type, datasets, options = commonOptions) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            return new Chart(ctx, { type, data: { labels: chartLabels, datasets }, options });
-        }
+<!-- Données pour JavaScript (cachées) -->
+<script type="application/json" id="chart-labels-data">{{ chart_labels|safe }}</script>
+<script type="application/json" id="eco-data">{{ eco_data|safe }}</script>
+<script type="application/json" id="obsolescence-data">{{ obsolescence_data|safe }}</script>
+<script type="application/json" id="bigtech-data">{{ bigtech_data|safe }}</script>
+<script type="application/json" id="co2-savings-data">{{ co2_savings_data|safe }}</script>
+{% endblock %}
 
-        let charts = {};
-        function initializeCharts() {
-            Object.values(charts).forEach(c=>c.destroy()); charts = {};
-            if (chartLabels.length) {
-                charts.ecoChart = createChart('ecoChart', 'line', [{ label: 'Score Écologique', data: ecoData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.2)', fill: true, tension: 0.4 }]);
-                charts.obsolescenceChart = createChart('obsolescenceChart', 'bar', [{ label: "Score d'Obsolescence", data: obsolescenceData, backgroundColor: '#f59e0b' }]);
-                charts.bigtechChart = createChart('bigtechChart', 'line', [{ label: 'Dépendance BigTech', data: bigtechData, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.2)', fill: true, tension: 0.4 }]);
-                charts.co2SavingsChart = createChart('co2SavingsChart', 'line', [{ label: 'Économies CO₂ (kg/an)', data: co2SavingsData, borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.2)', fill: true, tension: 0.4 }]);
-            }
-        }
-
-        function updateLastUpdateTime() { document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR'); }
-
-        // Fonction de rafraîchissement automatique des données de scores
-        async function refreshScoresData() {
-            try {
-                const response = await fetch('/api/scores-data/');
-                if (response.ok) {
-                    const data = await response.json();
-
-                    // Mettre à jour les données des graphiques
-                    chartLabels = data.chart_labels || [];
-                    ecoData = data.eco_data || [];
-                    obsolescenceData = data.obsolescence_data || [];
-                    bigtechData = data.bigtech_data || [];
-                    co2SavingsData = data.co2_savings_data || [];
-
-                    // Mettre à jour les moyennes avec les valeurs calculées par l'API
-                    updateAveragesFromAPI(data);
-
-                    // Recréer les graphiques avec les nouvelles données
-                    initializeCharts();
-
-                    // Mettre à jour le tableau
-                    updateTable(data.latest_data || []);
-
-                    // Mettre à jour l'heure de dernière mise à jour
-                    updateLastUpdateTime();
-                }
-            } catch (error) {
-                console.error('Erreur lors du rafraîchissement des données de scores:', error);
-            }
-        }
-
-        function updateAveragesFromAPI(data) {
-            document.getElementById('avg-eco').textContent = data.avg_eco;
-            document.getElementById('avg-obsolescence').textContent = data.avg_obsolescence;
-            document.getElementById('avg-bigtech').textContent = data.avg_bigtech;
-            document.getElementById('avg-co2-savings').textContent = data.avg_co2_savings + ' kg';
-        }
-
-        function updateTable(latestData) {
-            const tbody = document.getElementById('data-table-body');
-            if (!tbody) return;
-
-            if (latestData && latestData.length > 0) {
-                tbody.innerHTML = latestData.map(data => `
-                    <tr>
-                        <td>${data.id}</td>
-                        <td>${data.id}</td>
-                        <td><span class="badge ${data.eco_score >= 75 ? 'bg-success' : data.eco_score >= 50 ? 'bg-warning' : 'bg-danger'}">${data.eco_score}</span></td>
-                        <td>${data.obsolescence_score}</td>
-                        <td>${data.bigtech_dependency}</td>
-                        <td>${data.co2_savings_kg_year} kg/an</td>
-                        <td>${new Date(data.created_at).toLocaleString('fr-FR')}</td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 opacity-50">Aucune donnée disponible</td></tr>';
-            }
-        }
-
-        updateAverages();
-        initializeCharts();
-        updateLastUpdateTime();
-
-        // Rafraîchissement automatique toutes les 1.5 secondes
-        setInterval(refreshScoresData, 1500);
-    </script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{% static 'js/scores.js' %}"></script>
+{% endblock %}

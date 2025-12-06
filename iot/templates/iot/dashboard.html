@@ -316,9 +316,9 @@
             </nav>
             <!-- Contenu -->
             <div class="container-fluid content-shift">
-                <!-- Welcome Section -->
-                {% if user.is_authenticated %}
-                <div class="welcome-banner mb-4">
+                <!-- Welcome Section - Affichée seulement après le login -->
+                {% if show_welcome and user.is_authenticated %}
+                <div class="welcome-banner mb-4" id="welcome-banner">
                     <div class="glass-card p-4 text-center">
                         <div class="welcome-content">
                             <div class="welcome-icon mb-3">

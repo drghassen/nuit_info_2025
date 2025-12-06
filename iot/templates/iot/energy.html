@@ -1,244 +1,120 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoTrack • Énergie</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root { --primary:#4361ee; --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --dark:#0f172a; --light:#f8fafc; --gray:#64748b; --glass:rgba(255,255,255,0.15); --border:rgba(255,255,255,0.2);}        
-        body { font-family:'Inter',sans-serif; background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%); color:#e2e8f0; min-height:100vh; background-attachment:fixed; }
-        .glass-card{ background:var(--glass); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:20px; border:1px solid var(--border); box-shadow:0 8px 32px rgba(0,0,0,.3); transition:all .4s ease; }
-        .glass-card:hover{ transform:translateY(-8px); box-shadow:0 20px 40px rgba(0,0,0,.4); }
-        .navbar-custom{ background:rgba(15,23,42,.7); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
-        .chart-container{ background:rgba(15,23,42,.6); border-radius:18px; padding:1.8rem; border:1px solid var(--border); }
-        .table-custom{ border-radius:14px; overflow:hidden; background:rgba(15,23,42,.35); border:1px solid rgba(255,255,255,.08); }
-        .table-custom thead th{ background:rgba(67,97,238,.18); color:#000000; font-weight:700; border:0; padding:.9rem 1rem; letter-spacing:.2px; backdrop-filter:blur(8px); }
-        .table-custom tbody tr{ background:transparent; transition:transform .2s ease, background-color .25s ease, box-shadow .25s ease; }
-        .table-custom tbody tr:nth-child(odd){ background:rgba(255,255,255,.02); }
-        .table-custom tbody td{ padding:.75rem 1rem; border-top:1px solid rgba(255,255,255,.06); color:#000000; vertical-align:middle; font-weight:600; }
-        .table-custom tbody tr:hover{ background:rgba(67,97,238,.08); transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.25); }
-        .metric-big{ font-size:2.2rem; font-weight:700; letter-spacing:-.5px; }
-    .badge { border-radius: 999px; padding: .3rem .6rem; font-weight: 600; font-size: .75rem; border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 -1px 0 rgba(255,255,255,0.06); }
-        .badge.bg-success { background-color: rgba(16,185,129,0.18) !important; color: #34d399; }
-        .badge.bg-warning { background-color: rgba(245,158,11,0.18) !important; color: #fbbf24; }
-        .badge.bg-danger  { background-color: rgba(239,68,68,0.18) !important; color: #f87171; }
-    </style>
-</head>
-<body class="text-light">
-    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold fs-4" href="{% url 'dashboard' %}"><i class="fas fa-leaf text-success me-2"></i>EcoTrack <span class="text-primary">IoT</span></a>
-            <div class="d-flex align-items-center gap-4">
-                <div class="text-sm"><i class="fas fa-clock text-warning me-2"></i>Dernière mise à jour : <span id="last-update" class="fw-semibold">{% now "H:i:s" %}</span></div>
-                <div class="pulse"><i class="fas fa-circle text-success fs-6"></i> Live</div>
-            </div>
-        </div>
-    </nav>
+{% extends 'iot/base.html' %}
+{% load static %}
 
-    <div class="container-fluid px-4 py-5">
-        <div class="text-center mb-5">
-            <h1 class="display-5 fw-bold mb-3">Données <span class="text-warning">Énergétiques</span></h1>
-            <p class="lead opacity-80">Consommation, émissions CO₂, surchauffe et activité des appareils</p>
-        </div>
+{% block title %}EcoTrack • Énergie{% endblock %}
 
-        <div class="row g-4 mb-4">
-            <div class="col-lg-3 col-md-6">
-                <div class="glass-card p-4 text-center">
-                    <i class="fas fa-plug fa-2x text-warning mb-3"></i>
-                    <p class="mb-1 opacity-75">Puissance Moyenne</p>
-                    <h3 class="metric-big text-warning" id="avg-power">-</h3>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="glass-card p-4 text-center">
-                    <i class="fas fa-cloud fa-2x text-danger mb-3"></i>
-                    <p class="mb-1 opacity-75">CO₂ Moyen</p>
-                    <h3 class="metric-big text-danger" id="avg-co2">-</h3>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="glass-card p-4 text-center">
-                    <i class="fas fa-thermometer-half fa-2x text-warning mb-3"></i>
-                    <p class="mb-1 opacity-75">Surchauffe</p>
-                    <h3 class="metric-big text-warning" id="avg-overheating">-</h3>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="glass-card p-4 text-center">
-                    <i class="fas fa-desktop fa-2x text-success mb-3"></i>
-                    <p class="mb-1 opacity-75">Appareils Actifs</p>
-                    <h3 class="metric-big text-success" id="avg-active">-</h3>
-                </div>
-            </div>
-        </div>
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-5 fw-bold mb-3">Données <span class="text-warning">Énergétiques</span></h1>
+    <p class="lead opacity-80">Consommation, émissions CO₂, surchauffe et activité des appareils</p>
+</div>
 
-        <div class="row g-4 mb-4">
-            <div class="col-lg-6">
-                <div class="chart-container glass-card">
-                    <h5 class="mb-3"><i class="fas fa-plug me-2 text-warning"></i>Consommation Électrique</h5>
-                    <canvas id="powerChart"></canvas>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="chart-container glass-card">
-                    <h5 class="mb-3"><i class="fas fa-cloud me-2 text-danger"></i>Émissions CO₂</h5>
-                    <canvas id="co2Chart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="row g-4 mb-5">
-            <div class="col-lg-6">
-                <div class="chart-container glass-card">
-                    <h5 class="mb-3"><i class="fas fa-thermometer-half me-2 text-warning"></i>Niveau de Surchauffe</h5>
-                    <canvas id="overheatingChart"></canvas>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="chart-container glass-card">
-                    <h5 class="mb-3"><i class="fas fa-desktop me-2 text-success"></i>Appareils Actifs</h5>
-                    <canvas id="activeDevicesChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="glass-card overflow-hidden">
-            <div class="p-4 border-bottom border-white border-opacity-10">
-                <h4 class="mb-0"><i class="fas fa-table me-2 text-primary"></i>Dernières Données Énergétiques</h4>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-custom table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Sensor ID</th>
-                            <th>Puissance (W)</th>
-                            <th>CO₂ (g)</th>
-                            <th>Surchauffe</th>
-                            <th>Appareils Actifs</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="data-table-body">
-                        {% for data in latest_data %}
-                        <tr>
-                            <td>{{ data.id }}</td>
-                            <td>{{ data.energy_sensor_id }}</td>
-                            <td>{{ data.power_watts }}W</td>
-                            <td>{{ data.co2_equiv_g }}g</td>
-                            <td><span class="badge {% if data.overheating > 80 %}bg-danger{% elif data.overheating > 60 %}bg-warning{% else %}bg-success{% endif %}">{{ data.overheating }}°C</span></td>
-                            <td>{{ data.active_devices }}</td>
-                            <td>{{ data.created_at|date:"d/m/Y H:i" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-5 opacity-50">Aucune donnée disponible</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-plug fa-2x text-warning mb-3"></i>
+            <p class="mb-1 opacity-75">Puissance Moyenne</p>
+            <h3 class="metric-big text-warning" id="avg-power">-</h3>
         </div>
     </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-cloud fa-2x text-danger mb-3"></i>
+            <p class="mb-1 opacity-75">CO₂ Moyen</p>
+            <h3 class="metric-big text-danger" id="avg-co2">-</h3>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-thermometer-half fa-2x text-warning mb-3"></i>
+            <p class="mb-1 opacity-75">Surchauffe</p>
+            <h3 class="metric-big text-warning" id="avg-overheating">-</h3>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="glass-card p-4 text-center">
+            <i class="fas fa-desktop fa-2x text-success mb-3"></i>
+            <p class="mb-1 opacity-75">Appareils Actifs</p>
+            <h3 class="metric-big text-success" id="avg-active">-</h3>
+        </div>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let chartLabels = JSON.parse('{{ chart_labels|escapejs }}' || '[]');
-        let powerData = JSON.parse('{{ power_data|escapejs }}' || '[]');
-        let co2Data = JSON.parse('{{ co2_data|escapejs }}' || '[]');
-        let overheatingData = JSON.parse('{{ overheating_data|escapejs }}' || '[]');
-        let activeDevicesData = JSON.parse('{{ active_devices_data|escapejs }}' || '[]');
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="chart-container glass-card">
+            <h5 class="mb-3"><i class="fas fa-plug me-2 text-warning"></i>Consommation Électrique</h5>
+            <canvas id="powerChart"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-container glass-card">
+            <h5 class="mb-3"><i class="fas fa-cloud me-2 text-danger"></i>Émissions CO₂</h5>
+            <canvas id="co2Chart"></canvas>
+        </div>
+    </div>
+</div>
+<div class="row g-4 mb-5">
+    <div class="col-lg-6">
+        <div class="chart-container glass-card">
+            <h5 class="mb-3"><i class="fas fa-thermometer-half me-2 text-warning"></i>Niveau de Surchauffe</h5>
+            <canvas id="overheatingChart"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="chart-container glass-card">
+            <h5 class="mb-3"><i class="fas fa-desktop me-2 text-success"></i>Appareils Actifs</h5>
+            <canvas id="activeDevicesChart"></canvas>
+        </div>
+    </div>
+</div>
 
-        function calculateAverage(d){ if(!d||!d.length) return 0; return (d.reduce((a,b)=>a+b,0)/d.length).toFixed(1); }
-        function updateAverages(){
-            document.getElementById('avg-power').textContent = calculateAverage(powerData) + ' W';
-            document.getElementById('avg-co2').textContent = calculateAverage(co2Data) + ' g';
-            document.getElementById('avg-overheating').textContent = calculateAverage(overheatingData) + ' °C';
-            document.getElementById('avg-active').textContent = Math.round(calculateAverage(activeDevicesData));
-        }
+<div class="glass-card overflow-hidden">
+    <div class="p-4 border-bottom border-white border-opacity-10">
+        <h4 class="mb-0"><i class="fas fa-table me-2 text-primary"></i>Dernières Données Énergétiques</h4>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-custom table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Sensor ID</th>
+                    <th>Puissance (W)</th>
+                    <th>CO₂ (g)</th>
+                    <th>Surchauffe</th>
+                    <th>Appareils Actifs</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody id="data-table-body">
+                {% for data in latest_data %}
+                <tr>
+                    <td>{{ data.id }}</td>
+                    <td>{{ data.energy_sensor_id }}</td>
+                    <td>{{ data.power_watts }}W</td>
+                    <td>{{ data.co2_equiv_g }}g</td>
+                    <td><span class="badge {% if data.overheating > 80 %}bg-danger{% elif data.overheating > 60 %}bg-warning{% else %}bg-success{% endif %}">{{ data.overheating }}°C</span></td>
+                    <td>{{ data.active_devices }}</td>
+                    <td>{{ data.created_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 opacity-50">Aucune donnée disponible</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-        const commonOptions = { responsive:true, plugins:{ legend:{ labels:{ color:'#e2e8f0' } } }, scales:{ x:{ ticks:{ color:'#94a3b8' }}, y:{ ticks:{ color:'#94a3b8' }, grid:{ color:'rgba(255,255,255,0.1)' } } } };
-        function createChart(id,type,datasets,options=commonOptions){ const ctx=document.getElementById(id).getContext('2d'); return new Chart(ctx,{ type, data:{ labels:chartLabels, datasets }, options }); }
+<!-- Données pour JavaScript (cachées) -->
+<script type="application/json" id="chart-labels-data">{{ chart_labels|safe }}</script>
+<script type="application/json" id="power-data">{{ power_data|safe }}</script>
+<script type="application/json" id="co2-data">{{ co2_data|safe }}</script>
+<script type="application/json" id="overheating-data">{{ overheating_data|safe }}</script>
+<script type="application/json" id="active-devices-data">{{ active_devices_data|safe }}</script>
+{% endblock %}
 
-        let charts={};
-        function initializeCharts(){
-            Object.values(charts).forEach(c=>c.destroy()); charts={};
-            if(chartLabels.length){
-                charts.powerChart = createChart('powerChart','bar',[{ label:'Puissance (W)', data:powerData, backgroundColor:'#f59e0b' }]);
-                charts.co2Chart = createChart('co2Chart','line',[{ label:'CO₂ (g)', data:co2Data, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.2)', fill:true, tension:.4 }]);
-                charts.overheatingChart = createChart('overheatingChart','line',[{ label:'Température (°C)', data:overheatingData, borderColor:'#f97316', backgroundColor:'rgba(249,115,22,0.2)', fill:true, tension:.4 }]);
-                charts.activeDevicesChart = createChart('activeDevicesChart','line',[{ label:"Nombre d'appareils", data:activeDevicesData, borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.2)', fill:true, tension:.4 }]);
-            }
-        }
-
-        function updateLastUpdateTime(){ document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR'); }
-
-        // Fonction de rafraîchissement automatique des données énergétiques
-        async function refreshEnergyData() {
-            try {
-                const response = await fetch('/api/energy-data/');
-                if (response.ok) {
-                    const data = await response.json();
-
-                    // Mettre à jour les données des graphiques
-                    chartLabels = data.chart_labels || [];
-                    powerData = data.power_data || [];
-                    co2Data = data.co2_data || [];
-                    overheatingData = data.overheating_data || [];
-                    activeDevicesData = data.active_devices_data || [];
-
-                    // Mettre à jour les moyennes avec les valeurs calculées par l'API
-                    updateAveragesFromAPI(data);
-
-                    // Recréer les graphiques avec les nouvelles données
-                    initializeCharts();
-
-                    // Mettre à jour le tableau
-                    updateTable(data.latest_data || []);
-
-                    // Mettre à jour l'heure de dernière mise à jour
-                    updateLastUpdateTime();
-                }
-            } catch (error) {
-                console.error('Erreur lors du rafraîchissement des données énergétiques:', error);
-            }
-        }
-
-        function updateAveragesFromAPI(data) {
-            document.getElementById('avg-power').textContent = data.avg_power + ' W';
-            document.getElementById('avg-co2').textContent = data.avg_co2 + ' g';
-            document.getElementById('avg-overheating').textContent = data.avg_overheating + ' °C';
-            document.getElementById('avg-active').textContent = data.avg_active;
-        }
-
-        function updateTable(latestData) {
-            const tbody = document.getElementById('data-table-body');
-            if (!tbody) return;
-
-            if (latestData && latestData.length > 0) {
-                tbody.innerHTML = latestData.map(data => `
-                    <tr>
-                        <td>${data.id}</td>
-                        <td>${data.energy_sensor_id}</td>
-                        <td>${data.power_watts}W</td>
-                        <td>${data.co2_equiv_g}g</td>
-                        <td><span class="badge ${data.overheating > 80 ? 'bg-danger' : data.overheating > 60 ? 'bg-warning' : 'bg-success'}">${data.overheating}°C</span></td>
-                        <td>${data.active_devices}</td>
-                        <td>${new Date(data.created_at).toLocaleString('fr-FR')}</td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 opacity-50">Aucune donnée disponible</td></tr>';
-            }
-        }
-
-        updateAverages(); initializeCharts(); updateLastUpdateTime();
-
-        // Rafraîchissement automatique toutes les 1.5 secondes
-        setInterval(refreshEnergyData, 1500);
-    </script>
-</body>
-</html>
+{% block extra_js %}
+<script src="{% static 'js/energy.js' %}"></script>
+{% endblock %}
