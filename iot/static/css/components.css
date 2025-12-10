@@ -59,49 +59,68 @@
     -webkit-backdrop-filter: blur(10px);
 }
 
-.table-custom {
+table.table-custom {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     margin-bottom: 0;
 }
 
-.table-custom thead th {
-    background: rgba(15, 23, 42, 0.3);
-    color: var(--gray);
-    font-size: 0.7rem;
-    font-weight: 500;
+table.table-custom thead th {
+    background: transparent !important;
+    color: var(--gray) !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    letter-spacing: 0.1em;
+    padding: 1.25rem 1.5rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
     white-space: nowrap;
+    opacity: 0.8;
+    border-top: none !important;
 }
 
-.table-custom tbody tr {
+table.table-custom tbody tr {
     transition: all 0.2s ease;
+    position: relative;
+    background: transparent;
 }
 
-.table-custom tbody tr:last-child td {
-    border-bottom: none;
+table.table-custom tbody tr:last-child td {
+    border-bottom: none !important;
 }
 
-.table-custom tbody td {
-    padding: 0.85rem 1.5rem;
-    color: rgba(226, 232, 240, 0.9);
-    font-size: 0.85rem;
-    font-weight: 400;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+table.table-custom tbody td {
+    padding: 1.1rem 1.5rem !important;
+    color: var(--light) !important;
+    font-size: 0.9rem !important;
+    font-weight: 400 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
     vertical-align: middle;
+    background: transparent;
+    border-top: none !important;
 }
 
-.table-custom tbody tr:hover {
-    background: rgba(255, 255, 255, 0.02);
+table.table-custom tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+    transform: translateX(4px);
 }
 
-.table-custom tbody td:first-child {
+table.table-custom tbody td:first-child {
     font-weight: 500;
-    color: #fff;
+    color: #fff !important;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+table.table-custom tbody td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* Subtle accent on hover */
+table.table-custom tbody tr:hover td:first-child {
+    box-shadow: inset 3px 0 0 0 var(--primary);
 }
 
 /* Badges */
