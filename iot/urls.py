@@ -14,8 +14,9 @@ urlpatterns = [
     path('quiz/', views.quiz_view, name='quiz'),
     path('latest-data/', views.get_latest_data, name='get_latest_data'),
     path('dashboard-data/', views.get_dashboard_data, name='get_dashboard_data'),
-    path('hardware-data/', views.get_hardware_data, name='get_hardware_data'),
-    path('energy-data/', views.get_energy_data, name='get_energy_data'),
-    path('network-data/', views.get_network_data, name='get_network_data'),
-    path('scores-data/', views.get_scores_data, name='get_scores_data'),
+    path('api/hardware/', views.get_hardware_data, name='api_hardware'),
+    path('api/energy/', views.get_energy_data, name='api_energy'),
+    path('api/network/', views.get_network_data, name='api_network'),
+    path('api/scores/', views.get_scores_data, name='api_scores'),
+    path('history/', views.get_history_data, name='api_history'),
 ]

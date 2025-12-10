@@ -110,7 +110,10 @@ const APIUtils = {
 
     async fetchData(endpoint) {
         try {
-            const response = await fetch(`${this.baseUrl}${endpoint}`);
+            // Check if endpoint already starts with '/', assume absolute path if so
+            // Otherwise prepend baseUrl
+            const url = endpoint.startsWith('/') ? endpoint : `${this.baseUrl}${endpoint}`;
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }

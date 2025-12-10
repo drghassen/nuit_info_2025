@@ -8,7 +8,7 @@ from .models import IoTData
 
 # ==================== HELPER FUNCTIONS ====================
 
-def get_latest_iot_data(limit=15):
+def get_latest_iot_data(limit=8):
     """Récupère les dernières données IoT"""
     return IoTData.objects.order_by('-created_at')[:limit]
 
@@ -274,4 +274,78 @@ def serialize_iot_data(data):
         'recommendations': data.recommendations,
         'created_at': data.created_at.isoformat(),
     }
+
+
+def get_paginated_iot_data(page_number=1, limit=8):
+    """
+    Retrieves paginated IoT data.
+    Returns a dictionary with data and metadata.
+    """
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+    # Fetch all data, ordered by newest first
+    queryset = IoTData.objects.all().order_by('-created_at')
+    
+    paginator = Paginator(queryset, limit)
+    
+    try:
+        page_obj = paginator.page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, return empty result or last page
+        # Here we return empty to indicate end of list
+        return {
+            'data': [],
+            'meta': {
+                'total_pages': paginator.num_pages,
+                'current_page': page_number,
+                'has_next': False,
+                'has_previous': False,
+                'total_items': paginator.count
+            }
+        }
+
+    # Serialize the data
+    serialized_data = []
+    for data in page_obj:
+        # We use a simplified serialization for tables to keep it lighter if needed,
+        # but for consistency we can use the full serializer or a specific one.
+        # Let's use the individual getters from existing functions logic to ensure consistency with WebSocket
+        # or just reuse the manual dict creation which is faster than model_to_dict
+        serialized_data.append({
+            'id': data.id,
+            'hardware_sensor_id': data.hardware_sensor_id,
+            'cpu_usage': data.cpu_usage,
+            'ram_usage': data.ram_usage,
+            'power_watts': data.power_watts,
+            'eco_score': data.eco_score,
+            'co2_equiv_g': data.co2_equiv_g,
+            # Add other specific fields needed for other tables (union of all needed fields)
+            'battery_health': data.battery_health,
+            'age_years': data.age_years,
+            'overheating': data.overheating,
+            'active_devices': data.active_devices,
+            'network_load_mbps': data.network_load_mbps,
+            'requests_per_min': data.requests_per_min,
+            'cloud_dependency_score': data.cloud_dependency_score,
+            'obsolescence_score': data.obsolescence_score,
+            'bigtech_dependency': data.bigtech_dependency,
+            'co2_savings_kg_year': data.co2_savings_kg_year,
+            'created_at': data.created_at.isoformat(),
+        })
+
+    return {
+        'data': serialized_data,
+        'meta': {
+            'total_pages': paginator.num_pages,
+            'current_page': page_obj.number,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'total_items': paginator.count,
+            'start_index': page_obj.start_index(),
+            'end_index': page_obj.end_index()
+        }
+    }
+
 

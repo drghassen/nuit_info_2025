@@ -171,3 +171,24 @@ def get_scores_data(request):
         return JsonResponse(data, status=200)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def get_history_data(request):
+    """
+    Get paginated history data.
+    Params:
+        page: int, default 1
+        limit: int, default 8
+    """
+    try:
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit', 8))
+        
+        from .. import data_utils
+        data = data_utils.get_paginated_iot_data(page, limit)
+        return JsonResponse(data, status=200)
+    except ValueError:
+        return JsonResponse({'error': 'Invalid page or limit parameter'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

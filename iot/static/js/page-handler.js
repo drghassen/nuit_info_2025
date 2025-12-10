@@ -107,6 +107,9 @@ class PageDataHandler {
         // Update metric cards
         this.updateMetrics();
 
+        // Initialize Pagination
+        this.initPagination();
+
         // Connect to WebSocket for real-time updates
         this.connectWebSocket();
     }
@@ -281,10 +284,17 @@ class PageDataHandler {
         // Parse data arrays based on page type
         this.parseWebSocketData(data);
 
-        // Update charts and metrics
+        // Update charts and metrics (Always update these)
         this.initializeCharts();
         this.updateMetrics();
-        this.updateTable(data.latest_data || []);
+
+        // Update table ONLY if we are on the first page
+        if (this.currentPage === 1) {
+            this.updateTable(data.latest_data || []);
+            // Update pagination info if provided in WS (unlikely but good practice)
+            // For now, we assume WS updates simply refresh the "latest" view which roughly corresponds to page 1
+            // We might want to re-fetch pagination metadata if it changed significantly, but let's keep it simple.
+        }
 
         // Update last update time
         DOMUtils.updateLastUpdateTime();
@@ -340,5 +350,115 @@ class PageDataHandler {
         tbody.innerHTML = latestData.length > 0
             ? latestData.map(row => this.config.tableRenderer(row)).join('')
             : DOMUtils.getEmptyTableRow(this.config.tableColumns || 7);
+    }
+
+    // ==================== PAGINATION LOGIC ====================
+
+    initPagination() {
+        this.currentPage = 1;
+        this.itemsPerPage = 8;
+        this.paginationContainer = null;
+
+        console.log(`${this.config.pageName}: Initializing pagination logic...`);
+
+        // Find the wrapper of the actual data table. 
+        // We look for the table body, then its table, then the responsive wrapper.
+        const tbody = document.getElementById('data-table-body');
+        if (!tbody) {
+            console.error(`${this.config.pageName}: Critical Error - Data table body not found!`);
+            return;
+        }
+
+        // Try to find the closest responsive wrapper, or just the table itself
+        const table = tbody.closest('table');
+        const tableResponsive = tbody.closest('.table-responsive') || table;
+
+        if (tableResponsive) {
+            console.log(`${this.config.pageName}: Found table container (${tableResponsive.className}), injecting pagination.`);
+
+            // Remove existing container if any (cleanup)
+            const parent = tableResponsive.parentNode;
+            const existingPagination = parent.querySelector('.pagination-container');
+            if (existingPagination) {
+                existingPagination.remove();
+            }
+
+            // Create container
+            this.paginationContainer = document.createElement('div');
+            this.paginationContainer.className = 'pagination-container d-flex justify-content-between align-items-center p-3';
+
+            // Explicit styles for visibility and placement
+            this.paginationContainer.style.background = 'rgba(255, 255, 255, 0.02)';
+            this.paginationContainer.style.borderTop = '1px solid rgba(255, 255, 255, 0.1)';
+            this.paginationContainer.style.marginTop = '0'; // Reset margin
+            this.paginationContainer.style.zIndex = '100';
+            this.paginationContainer.style.minHeight = '50px';
+
+            // Insert AFTER the table responsive wrapper (or table)
+            // This ensures it is not inside an overflow:hidden container if the table has one that clips height,
+            // although usually cards are overflow hidden. 
+            // We append to the parent to ensure it follows the flow.
+            parent.insertBefore(this.paginationContainer, tableResponsive.nextSibling);
+
+            // Initial render - force it even if metadata isn't fully ready yet
+            this.renderPaginationControls({
+                has_next: true,
+                has_previous: false,
+                total_pages: '1+',
+                current_page: 1
+            });
+
+            console.log(`${this.config.pageName}: Pagination controls injected successfully.`);
+        } else {
+            console.warn(`${this.config.pageName}: Could not find a valid table container to inject pagination.`);
+        }
+    }
+
+    renderPaginationControls(meta) {
+        if (!this.paginationContainer) return;
+
+        this.paginationContainer.innerHTML = `
+            <div class="text-white opacity-75 small">
+                Page <span class="fw-bold text-primary">${this.currentPage}</span> 
+                ${meta.total_pages ? `sur ${meta.total_pages}` : ''}
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-light" id="prevPageBtn" ${!meta.has_previous ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left me-1"></i> Précédent
+                </button>
+                <button class="btn btn-sm btn-outline-light" id="nextPageBtn" ${!meta.has_next ? 'disabled' : ''}>
+                    Suivant <i class="fas fa-chevron-right ms-1"></i>
+                </button>
+            </div>
+        `;
+
+        // Add event listeners
+        const prevBtn = this.paginationContainer.querySelector('#prevPageBtn');
+        const nextBtn = this.paginationContainer.querySelector('#nextPageBtn');
+
+        if (prevBtn) prevBtn.addEventListener('click', () => this.loadPage(this.currentPage - 1));
+        if (nextBtn) nextBtn.addEventListener('click', () => this.loadPage(this.currentPage + 1));
+    }
+
+    async loadPage(page) {
+        if (page < 1) return;
+
+        // Show loading state (optional, but good UX)
+        const tbody = document.getElementById('data-table-body');
+        if (tbody) tbody.style.opacity = '0.5';
+
+        try {
+            const data = await APIUtils.fetchData(`/api/history/?page=${page}&limit=${this.itemsPerPage}`);
+
+            if (data && data.data) {
+                this.currentPage = page;
+                this.updateTable(data.data);
+                this.renderPaginationControls(data.meta);
+            }
+        } catch (error) {
+            console.error('Error loading page:', error);
+        } finally {
+            if (tbody) tbody.style.opacity = '1';
+        }
     }
 }

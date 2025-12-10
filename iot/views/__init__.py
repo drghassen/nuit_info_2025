@@ -20,7 +20,8 @@ from .api_views import (
     get_hardware_data,
     get_energy_data,
     get_network_data,
-    get_scores_data
+    get_scores_data,
+    get_history_data
 )
 
 __all__ = [
@@ -42,4 +43,5 @@ __all__ = [
     'get_energy_data',
     'get_network_data',
     'get_scores_data',
+    'get_history_data',
 ]
