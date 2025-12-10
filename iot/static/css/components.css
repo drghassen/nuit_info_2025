@@ -3,22 +3,76 @@
  * Consolidated from common.css, old components.css, and dashboard.css
  */
 
-/* Glass Card Design */
+/* ==================== ULTRA MODERN GLASS CARD ==================== */
 .glass-card {
-    background: var(--glass);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    transition: all 0.4s ease;
+    position: relative;
+    background: linear-gradient(135deg,
+            rgba(20, 30, 48, 0.85) 0%,
+            rgba(15, 23, 42, 0.9) 50%,
+            rgba(20, 30, 48, 0.85) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    box-shadow:
+        0 4px 24px rgba(0, 0, 0, 0.12),
+        0 1px 2px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
     box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Subtle gradient border effect */
+.glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.12) 0%,
+            rgba(255, 255, 255, 0.04) 50%,
+            rgba(67, 97, 238, 0.15) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* Top shine effect */
+.glass-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.1) 20%,
+            rgba(255, 255, 255, 0.15) 50%,
+            rgba(255, 255, 255, 0.1) 80%,
+            transparent 100%);
+    pointer-events: none;
 }
 
 .glass-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(-4px);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.2),
+        0 4px 12px rgba(67, 97, 238, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.glass-card:hover::before {
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(67, 97, 238, 0.2) 50%,
+            rgba(16, 185, 129, 0.15) 100%);
 }
 
 /* Navbar */
@@ -49,78 +103,143 @@
     height: auto !important;
 }
 
-/* Tables */
+/* ==================== ULTRA MODERN TABLES ==================== */
 .table-responsive {
+    position: relative;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    border-radius: 20px;
-    background: rgba(15, 23, 42, 0.2);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    background: linear-gradient(145deg,
+            rgba(20, 30, 48, 0.85) 0%,
+            rgba(15, 23, 42, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
-table.table-custom {
+/* Gradient border for table container */
+.table-responsive::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(145deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.03) 50%,
+            rgba(67, 97, 238, 0.12) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.table-custom {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     margin-bottom: 0;
 }
 
-table.table-custom thead th {
-    background: transparent !important;
-    color: var(--gray) !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
+/* Table header - Premium styling */
+.table-custom thead th {
+    background: linear-gradient(180deg,
+            rgba(30, 41, 59, 0.6) 0%,
+            rgba(15, 23, 42, 0.4) 100%);
+    color: rgba(148, 163, 184, 0.95);
+    font-size: 0.7rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    padding: 1.25rem 1.5rem !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(67, 97, 238, 0.12);
     white-space: nowrap;
-    opacity: 0.8;
-    border-top: none !important;
-}
-
-table.table-custom tbody tr {
-    transition: all 0.2s ease;
     position: relative;
-    background: transparent;
 }
 
-table.table-custom tbody tr:last-child td {
-    border-bottom: none !important;
+/* Subtle shine on header */
+.table-custom thead th::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(67, 97, 238, 0.2) 50%,
+            transparent 100%);
 }
 
-table.table-custom tbody td {
-    padding: 1.1rem 1.5rem !important;
-    color: var(--light) !important;
-    font-size: 0.9rem !important;
-    font-weight: 400 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+.table-custom thead th:first-child {
+    border-top-left-radius: 16px;
+}
+
+.table-custom thead th:last-child {
+    border-top-right-radius: 16px;
+}
+
+/* Table body rows */
+.table-custom tbody tr {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.table-custom tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-custom tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 16px;
+}
+
+.table-custom tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 16px;
+}
+
+/* Table cells */
+.table-custom tbody td {
+    padding: 1rem 1.5rem;
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 0.85rem;
+    font-weight: 400;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     vertical-align: middle;
-    background: transparent;
-    border-top: none !important;
+    position: relative;
+    transition: all 0.25s ease;
 }
 
-table.table-custom tbody tr:hover {
-    background: rgba(255, 255, 255, 0.03) !important;
-    transform: translateX(4px);
+/* Row hover effect */
+.table-custom tbody tr:hover {
+    background: linear-gradient(90deg,
+            rgba(67, 97, 238, 0.06) 0%,
+            rgba(67, 97, 238, 0.03) 50%,
+            transparent 100%);
 }
 
-table.table-custom tbody td:first-child {
-    font-weight: 500;
-    color: #fff !important;
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
+.table-custom tbody tr:hover td {
+    color: rgba(255, 255, 255, 0.95);
 }
 
-table.table-custom tbody td:last-child {
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
+/* First column - ID/Primary emphasis */
+.table-custom tbody td:first-child {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    position: relative;
 }
 
-/* Subtle accent on hover */
-table.table-custom tbody tr:hover td:first-child {
-    box-shadow: inset 3px 0 0 0 var(--primary);
+/* Accent line on hover for first cell */
+.table-custom tbody tr:hover td:first-child::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    bottom: 20%;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), var(--success));
+    border-radius: 0 4px 4px 0;
+    opacity: 1;
+    transition: opacity 0.25s ease;
 }
 
 /* Badges */
@@ -223,47 +342,191 @@ table.table-custom tbody tr:hover td:first-child {
     cursor: pointer;
 }
 
-/* Category Buttons */
+/* ==================== ULTRA MODERN CATEGORY BUTTONS ==================== */
 .category-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
-    padding: 1rem 1.2rem;
-    transition: all 0.3s ease;
+    position: relative;
+    background: linear-gradient(160deg,
+            rgba(25, 35, 55, 0.9) 0%,
+            rgba(15, 23, 42, 0.95) 100%);
+    border: none;
+    border-radius: 14px;
+    padding: 1.5rem 1.25rem;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     text-align: center;
-    position: relative;
     overflow: hidden;
     max-width: 100%;
     box-sizing: border-box;
 }
 
+/* Gradient border */
 .category-btn::before {
     content: '';
     position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    padding: 1px;
+    background: linear-gradient(160deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.03) 50%,
+            rgba(67, 97, 238, 0.12) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: all 0.35s ease;
+}
+
+/* Shine effect on top */
+.category-btn::after {
+    content: '';
+    position: absolute;
     top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: 0.7s;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.03) 0%,
+            transparent 100%);
+    pointer-events: none;
+    border-radius: 14px 14px 0 0;
+}
+
+/* Icon styling inside category-btn */
+.category-btn i {
+    transition: all 0.35s ease;
+    filter: drop-shadow(0 2px 8px rgba(67, 97, 238, 0.3));
+}
+
+.category-btn:hover {
+    transform: translateY(-6px);
+    box-shadow:
+        0 16px 48px rgba(0, 0, 0, 0.25),
+        0 8px 16px rgba(67, 97, 238, 0.12);
 }
 
 .category-btn:hover::before {
-    left: 100%;
+    background: linear-gradient(160deg,
+            rgba(67, 97, 238, 0.3) 0%,
+            rgba(16, 185, 129, 0.2) 50%,
+            rgba(255, 255, 255, 0.15) 100%);
+}
+
+.category-btn:hover i {
+    transform: scale(1.15);
+    filter: drop-shadow(0 4px 16px rgba(67, 97, 238, 0.5));
 }
 
 .category-btn.active {
-    background: linear-gradient(135deg, var(--primary), var(--success));
-    color: white;
-    transform: scale(1.05);
-    box-shadow: 0 10px 30px rgba(67, 97, 238, 0.4);
+    background: linear-gradient(135deg,
+            rgba(67, 97, 238, 0.25) 0%,
+            rgba(16, 185, 129, 0.2) 100%);
+    transform: translateY(-4px);
+    box-shadow:
+        0 12px 36px rgba(67, 97, 238, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.category-btn.active::before {
+    background: linear-gradient(135deg,
+            rgba(67, 97, 238, 0.5) 0%,
+            rgba(16, 185, 129, 0.4) 100%);
 }
 
 @media (max-width: 768px) {
     .category-btn {
-        padding: 0.75rem 1rem;
+        padding: 1.25rem 1rem;
+        border-radius: 12px;
     }
+}
+
+/* ==================== METRIC CARDS (DASHBOARD) ==================== */
+.metric-card-clickable {
+    position: relative;
+    background: linear-gradient(145deg,
+            rgba(20, 30, 48, 0.88) 0%,
+            rgba(15, 23, 42, 0.92) 100%);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+/* Metric card gradient border */
+.metric-card-clickable::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(145deg,
+            rgba(255, 255, 255, 0.08) 0%,
+            rgba(67, 97, 238, 0.1) 50%,
+            rgba(255, 255, 255, 0.05) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: all 0.35s ease;
+}
+
+/* Subtle glow on hover */
+.metric-card-clickable::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center,
+            rgba(67, 97, 238, 0.06) 0%,
+            transparent 50%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+.metric-card-clickable:hover::after {
+    opacity: 1;
+}
+
+.metric-card-clickable:hover::before {
+    background: linear-gradient(145deg,
+            rgba(67, 97, 238, 0.25) 0%,
+            rgba(16, 185, 129, 0.2) 50%,
+            rgba(255, 255, 255, 0.12) 100%);
+}
+
+/* Icon styling in metric cards */
+.metric-card-clickable i {
+    position: relative;
+    z-index: 1;
+    transition: all 0.35s ease;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+}
+
+.metric-card-clickable:hover i {
+    transform: scale(1.12) translateY(-2px);
+    filter: drop-shadow(0 4px 12px currentColor);
+}
+
+/* Metric value styling */
+.metric-big {
+    position: relative;
+    z-index: 1;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, currentColor 0%, currentColor 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    transition: all 0.3s ease;
+}
+
+.metric-card-clickable:hover .metric-big {
+    filter: drop-shadow(0 2px 8px currentColor);
+    transform: scale(1.02);
 }
 
 /* Notification Styles */
