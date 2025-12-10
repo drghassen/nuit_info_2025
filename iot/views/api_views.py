@@ -18,23 +18,12 @@ def iot_data_post(request):
     try:
         data = json.loads(request.body)
         
-        # DEBUG: Log incoming data structure
-        print("=" * 50)
-        print("API INCOMING DATA:")
-        print(f"Keys at root: {list(data.keys())}")
-        
         # Extract nested data structures (from Node-RED format)
         # Support both nested format and flat format for backwards compatibility
         hardware_data = data.get('hardware', data)
         energy_data = data.get('energy', data)
         network_data = data.get('network', data)
         scores_data = data.get('scores', data)
-        
-        # DEBUG: Log scores data
-        print(f"scores_data type: {type(scores_data)}")
-        print(f"scores_data keys: {list(scores_data.keys()) if isinstance(scores_data, dict) else 'N/A'}")
-        print(f"recommendations: {scores_data.get('recommendations', 'NOT FOUND')}")
-        print("=" * 50)
         
         # Create new IoT data record
         iot_data = IoTData.objects.create(
