@@ -19,47 +19,47 @@ let co2Data = [];
 let latestData = [];
 const charts = {};
 
-// Notification thresholds configuration
+// Notification thresholds configuration (Based on Averages)
 const thresholds = {
     cpu: {
-        limit: 85,
+        limit: 80,
         cmp: '>',
-        title: 'CPU élevé',
-        message: v => `CPU ${v}% > 85%`,
+        title: 'Charge Moyenne Élevée',
+        message: v => `CPU Moyen: ${v}% (Seuil: 80%). Attention à la surcharge.`,
         type: 'warning'
     },
     ram: {
         limit: 85,
         cmp: '>',
-        title: 'RAM élevée',
-        message: v => `RAM ${v}% > 85%`,
+        title: 'Mémoire Saturée',
+        message: v => `RAM Moyenne: ${v}% (Seuil: 85%). Optimisation requise.`,
         type: 'warning'
     },
     power_watts: {
-        limit: 200,
+        limit: 250,
         cmp: '>',
-        title: 'Puissance élevée',
-        message: v => `Puissance ${v}W > 200W`,
+        title: 'Consommation Excessive',
+        message: v => `Conso Moyenne: ${v}W (Seuil: 250W). Vérifiez les équipements.`,
         type: 'warning'
     },
     co2: {
-        limit: 500,
+        limit: 150,
         cmp: '>',
-        title: 'CO₂ élevé',
-        message: v => `CO₂ ${v}g > 500g`,
+        title: 'Emissions CO₂ Élevées',
+        message: v => `CO₂ Moyen: ${v}g (Seuil: 150g). Impact environnemental critique.`,
         type: 'danger'
     },
     eco_score: {
-        limit: 40,
+        limit: 50,
         cmp: '<',
-        title: 'Score Éco faible',
-        message: v => `Score Éco ${v} < 40`,
+        title: 'Score Éco Insuffisant',
+        message: v => `Score Éco Moyen: ${v} (Seuil: 50). Performance écologique faible.`,
         type: 'danger'
     }
 };
 
-// Previous state for change detection
-let previousState = {
+// Previous state for change detection (Tracking Averages)
+let previousAverages = {
     cpu: null,
     ram: null,
     power_watts: null,
@@ -72,50 +72,57 @@ let previousState = {
 // ============================================================================
 
 /**
- * Check if metrics exceed defined thresholds
- * @param {Object} row - Data row to check
+ * Check if AVERAGE metrics exceed defined thresholds
+ * @param {Object} averages - Object containing calculated averages
  */
-function checkThresholds(row) {
-    if (!row) return;
+function checkAverageThresholds(averages) {
+    if (!averages) return;
 
     try {
-        const cpu = Number(row.cpu_usage);
-        const ram = Number(row.ram_usage);
-        const pw = Number(row.power_watts);
-        const eco = Number(row.eco_score);
-        const co2 = Number(row.co2_equiv_g || (Array.isArray(co2Data) && co2Data.length ? co2Data[co2Data.length - 1] : null));
-
         const checks = [
-            ['cpu', cpu],
-            ['ram', ram],
-            ['power_watts', pw],
-            ['eco_score', eco],
-            ['co2', co2]
+            ['cpu', averages.cpu],
+            ['ram', averages.ram],
+            ['power_watts', averages.power],
+            ['eco_score', averages.eco],
+            ['co2', averages.co2]
         ];
 
         for (const [k, v] of checks) {
             const conf = thresholds[k];
-            if (conf && compare(v, conf)) {
-                const previousValue = previousState[k];
-                const hasChanged = previousValue === null || Math.abs(v - previousValue) > 5;
+            // Validate value is a number
+            if (conf && v != null && !isNaN(v)) {
 
-                if (hasChanged) {
-                    previousState[k] = v;
-                    if (window.notificationSystem) {
-                        window.notificationSystem.addNotification(
-                            conf.type,
-                            conf.title,
-                            conf.message(v),
-                            v
-                        );
+                // Check if threshold is crossed
+                if (compare(v, conf)) {
+                    const previousValue = previousAverages[k];
+                    // Trigger notification if:
+                    // 1. First time crossing (previous is null)
+                    // 2. OR Value has changed significantly (> 2 units) AND it's been a while (handled by notification system de-dupe)
+                    // We use significant change to avoid spamming on minor fluctuations around the average
+
+                    const hasChangedSignificantly = previousValue === null || Math.abs(v - previousValue) > 2;
+
+                    if (hasChangedSignificantly) {
+                        previousAverages[k] = v; // Update state
+
+                        if (window.notificationSystem) {
+                            window.notificationSystem.addNotification(
+                                conf.type,
+                                conf.title,
+                                conf.message(v),
+                                v
+                            );
+                        }
                     }
+                } else {
+                    // Reset state if we are back to normal levels
+                    // This allows the notification to fire again if we spike again later
+                    previousAverages[k] = null;
                 }
-            } else {
-                previousState[k] = null;
             }
         }
     } catch (e) {
-        console.error('Error in checkThresholds:', e);
+        console.error('Error in checkAverageThresholds:', e);
     }
 }
 
@@ -137,18 +144,41 @@ function compare(val, conf) {
 /**
  * Update average metrics display
  */
-function updateAverages() {
-    const avg = arr => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : 0;
+/**
+ * Update average metrics display and return values
+ * @returns {Object} Calculated averages
+ */
+function calculateAndUpdateAverages() {
+    const avg = arr => {
+        if (!arr || !arr.length) return 0;
+        const sum = arr.reduce((a, b) => a + Number(b), 0);
+        return parseFloat((sum / arr.length).toFixed(1));
+    };
+
+    const cpuAvg = avg(cpuData);
+    const ramAvg = avg(ramData);
+    const powerAvg = avg(powerData);
+    const ecoAvg = avg(ecoData);
+    // CO2 might need its own average if it's an array
+    const co2Avg = avg(co2Data);
 
     const avgCpuEl = document.getElementById('avg-cpu');
     const avgRamEl = document.getElementById('avg-ram');
     const avgPowerEl = document.getElementById('avg-power');
     const avgEcoEl = document.getElementById('avg-eco');
 
-    if (avgCpuEl) avgCpuEl.textContent = avg(cpuData) + '%';
-    if (avgRamEl) avgRamEl.textContent = avg(ramData) + '%';
-    if (avgPowerEl) avgPowerEl.textContent = avg(powerData) + ' W';
-    if (avgEcoEl) avgEcoEl.textContent = avg(ecoData);
+    if (avgCpuEl) avgCpuEl.textContent = cpuAvg + '%';
+    if (avgRamEl) avgRamEl.textContent = ramAvg + '%';
+    if (avgPowerEl) avgPowerEl.textContent = powerAvg + ' W';
+    if (avgEcoEl) avgEcoEl.textContent = ecoAvg;
+
+    return {
+        cpu: cpuAvg,
+        ram: ramAvg,
+        power: powerAvg,
+        eco: ecoAvg,
+        co2: co2Avg
+    };
 }
 
 // ============================================================================
@@ -369,12 +399,11 @@ function updateData(data) {
         // Update all visualizations
         updateCharts();
         updateTable();
-        updateAverages();
+        // Calculate and update averages, get the values back
+        const currentAverages = calculateAndUpdateAverages();
 
-        // Check thresholds for latest data
-        if (latestData.length > 0) {
-            checkThresholds(latestData[0]);
-        }
+        // Check thresholds for calculated averages
+        checkAverageThresholds(currentAverages);
 
         // Update last update time
         updateLastUpdateTime();
@@ -468,8 +497,8 @@ window.DashboardCore = {
     updateData,
     updateCharts,
     updateTable,
-    updateAverages,
-    checkThresholds,
+    calculateAndUpdateAverages,
+    checkAverageThresholds,
     initCharts
 };
 

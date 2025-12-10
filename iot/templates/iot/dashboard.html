@@ -455,6 +455,7 @@
     <script src="{% static 'js/utils.js' %}"></script>
     <script src="{% static 'js/notification.js' %}"></script>
     <script src="{% static 'js/chatbot.js' %}"></script>
+    <script src="{% static 'js/auth-system.js' %}"></script>
     <script src="{% static 'js/websocket-client.js' %}"></script>
     <script src="{% static 'js/dashboard-core.js' %}"></script>
     <script src="{% static 'js/dashboard-realtime.js' %}"></script>
@@ -484,356 +485,31 @@
     </script>
     <script>
         // ==================== DASHBOARD IoT ====================
-        // Wait for DOM to be ready before initializing systems
-        // Wait for DOM to be ready before initializing systems
-        // Attached to window for global access
+
+        // Global system references
         window.notificationSystem = null;
         window.chatbotSystem = null;
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Initialize notification and chatbot systems
-            // Initialize notification and chatbot systems
+            // 1. Initialize core systems
             window.notificationSystem = new NotificationSystem();
             window.chatbotSystem = new ChatbotSystem();
             console.log('✅ Notification and Chatbot systems initialized globally');
-        });
 
-        let chartLabels = [], cpuData = [], ramData = [], powerData = [], ecoData = [], co2Data = [], latestData = [];
-        const charts = {};
-        // Seuils et notifications
-        const thresholds = {
-            cpu: {
-                limit: 85,
-                cmp: '>',
-                title: 'CPU élevé',
-                message: v => `CPU ${v}% > 85%`,
-                type: 'warning'
-            },
-            ram: {
-                limit: 85,
-                cmp: '>',
-                title: 'RAM élevée',
-                message: v => `RAM ${v}% > 85%`,
-                type: 'warning'
-            },
-            power_watts: {
-                limit: 200,
-                cmp: '>',
-                title: 'Puissance élevée',
-                message: v => `Puissance ${v}W > 200W`,
-                type: 'warning'
-            },
-            co2: {
-                limit: 500,
-                cmp: '>',
-                title: 'CO₂ élevé',
-                message: v => `CO₂ ${v}g > 500g`,
-                type: 'danger'
-            },
-            eco_score: {
-                limit: 40,
-                cmp: '<',
-                title: 'Score Éco faible',
-                message: v => `Score Éco ${v} < 40`,
-                type: 'danger'
+            // 2. Initialize UI Components
+
+            // Sidebar
+            if (typeof SidebarManager !== 'undefined') {
+                SidebarManager.init();
             }
-        };
-        // État précédent pour détecter les changements
-        let previousState = {
-            cpu: null,
-            ram: null,
-            power_watts: null,
-            co2: null,
-            eco_score: null
-        };
-        function checkThresholds(row) {
-            if (!row) return;
 
-            try {
-                const cpu = Number(row.cpu_usage);
-                const ram = Number(row.ram_usage);
-                const pw = Number(row.power_watts);
-                const eco = Number(row.eco_score);
-                const co2 = Number(row.co2_equiv_g || (Array.isArray(co2Data) && co2Data.length ? co2Data[co2Data.length - 1] : null));
-
-                const checks = [
-                    ['cpu', cpu],
-                    ['ram', ram],
-                    ['power_watts', pw],
-                    ['eco_score', eco],
-                    ['co2', co2]
-                ];
-
-                for (const [k, v] of checks) {
-                    const conf = thresholds[k];
-                    if (conf && compare(v, conf)) {
-                        const previousValue = previousState[k];
-                        const hasChanged = previousValue === null ||
-                            Math.abs(v - previousValue) > 5;
-
-                        if (hasChanged) {
-                            previousState[k] = v;
-                            notificationSystem.addNotification(
-                                conf.type,
-                                conf.title,
-                                conf.message(v),
-                                v
-                            );
-                        }
-                    } else {
-                        previousState[k] = null;
-                    }
-                }
-            } catch (e) {
-                console.error('Erreur dans checkThresholds:', e);
-            }
-        }
-        function compare(val, conf) {
-            if (val == null) return false;
-            return conf.cmp === '>' ? (val > conf.limit) : (val < conf.limit);
-        }
-        function updateAverages() {
-            const avg = arr => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : 0;
-            document.getElementById('avg-cpu').textContent = avg(cpuData) + '%';
-            document.getElementById('avg-ram').textContent = avg(ramData) + '%';
-            document.getElementById('avg-power').textContent = avg(powerData) + ' W';
-            document.getElementById('avg-eco').textContent = avg(ecoData);
-        }
-        function initCharts() {
-            Object.values(charts).forEach(c => c.destroy());
-            const baseOpts = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#e2e8f0',
-                            font: { size: 12 }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#94a3b8',
-                            maxRotation: 45
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#94a3b8'
-                        },
-                        grid: {
-                            color: 'rgba(255,255,255,0.1)'
-                        }
-                    }
-                }
-            };
-            charts.cpuRam = new Chart('cpuRamChart', {
-                type: 'line',
-                data: {
-                    labels: chartLabels,
-                    datasets: [
-                        {
-                            label: 'CPU %',
-                            data: cpuData,
-                            borderColor: '#4361ee',
-                            backgroundColor: 'rgba(67, 97, 238, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: 'RAM %',
-                            data: ramData,
-                            borderColor: '#a78bfa',
-                            backgroundColor: 'rgba(167, 139, 250, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }
-                    ]
-                },
-                options: {
-                    ...baseOpts,
-                    scales: {
-                        ...baseOpts.scales,
-                        y: {
-                            ...baseOpts.scales.y,
-                            min: 0,
-                            max: 100
-                        }
-                    }
-                }
-            });
-            charts.energy = new Chart('energyChart', {
-                type: 'bar',
-                data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        label: 'Watts',
-                        data: powerData,
-                        backgroundColor: 'rgba(245, 158, 11, 0.7)',
-                        borderColor: '#f59e0b',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    ...baseOpts,
-                    scales: {
-                        ...baseOpts.scales,
-                        y: {
-                            ...baseOpts.scales.y,
-                            min: 0
-                        }
-                    }
-                }
-            });
-            charts.eco = new Chart('ecoChart', {
-                type: 'line',
-                data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        label: 'Score Éco',
-                        data: ecoData,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    ...baseOpts,
-                    scales: {
-                        ...baseOpts.scales,
-                        y: {
-                            ...baseOpts.scales.y,
-                            min: 0,
-                            max: 100
-                        }
-                    }
-                }
-            });
-            charts.co2 = new Chart('co2Chart', {
-                type: 'line',
-                data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        label: 'CO₂ (g)',
-                        data: co2Data,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    ...baseOpts,
-                    scales: {
-                        ...baseOpts.scales,
-                        y: {
-                            ...baseOpts.scales.y,
-                            min: 0
-                        }
-                    }
-                }
-            });
-        }
-        function updateTable() {
-            const tbody = document.getElementById('data-table-body');
-            if (!tbody) return;
-
-            tbody.innerHTML = latestData.length ? latestData.map(d => `
-                <tr>
-                    <td>${d.id}</td>
-                    <td>${d.hardware_sensor_id}</td>
-                    <td>${d.cpu_usage}%</td>
-                    <td>${d.ram_usage}%</td>
-                    <td>${d.power_watts}W</td>
-                    <td><span class="badge-eco ${d.eco_score >= 75 ? 'bg-success' : d.eco_score >= 50 ? 'bg-warning' : 'bg-danger'}">${d.eco_score}</span></td>
-                    <td>${new Date(d.created_at).toLocaleString('fr-FR')}</td>
-                </tr>
-            `).join('') : '<tr><td colspan="7" class="text-center py-5 opacity-50">Aucune donnée</td></tr>';
-        }
-        function updateTime() {
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('fr-FR');
-        }
-        // Traitement des données reçues via WebSocket
-        function processData(data) {
-            if (!data) return;
-
-            // Mapper les données reçues
-            chartLabels = data.chart_labels || [];
-            cpuData = data.cpu_data || [];
-            ramData = data.ram_data || [];
-            powerData = data.power_data || [];
-            ecoData = data.eco_data || [];
-            co2Data = data.co2_data || [];
-            latestData = data.latest_data || [];
-
-            updateAverages();
-            initCharts();
-            updateTable();
-            updateTime();
-
-            if (latestData && latestData.length) {
-                checkThresholds(latestData[0]);
-            }
-        }
-
-        // Charger les données initiales depuis le template Django
-        function loadInitialData() {
-            // Parser les données depuis l'élément script JSON
-            const dataElement = document.getElementById('initial-dashboard-data');
-            if (dataElement) {
-                try {
-                    const initialData = JSON.parse(dataElement.textContent);
-                    processData(initialData);
-                } catch (error) {
-                    console.error('Erreur lors du parsing des données initiales:', error);
-                }
-            }
-        }
-
-        // Nettoyage périodique du cache
-        setInterval(() => {
-            notificationSystem.cleanupNotificationCache();
-        }, 60000);
-
-        // Connexion WebSocket pour les données en temps réel
-        const wsClient = new IoTWebSocketClient('/ws/dashboard/', {
-            onMessage: (data) => {
-                processData(data);
-            },
-            onOpen: () => {
-                console.log('WebSocket Dashboard connecté');
-            },
-            onError: (error) => {
-                console.error('Erreur WebSocket Dashboard:', error);
-            },
-            onClose: () => {
-                console.log('WebSocket Dashboard déconnecté');
-            }
-        });
-
-        // Charger les données initiales au démarrage
-        loadInitialData();
-
-        // Connexion WebSocket pour les mises à jour en temps réel
-        wsClient.connect();
-
-        // Notification and chatbot systems already declared at line 484
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // Initialize notification and chatbot systems
-            notificationSystem = new NotificationSystem();
-            chatbotSystem = new ChatbotSystem();
-            console.log('✅ Notification and Chatbot systems initialized');
-
-            // Make metric cards clickable
+            // Clickable Metric Cards
             document.querySelectorAll('.metric-card-clickable').forEach(card => {
                 card.addEventListener('click', function () {
                     const url = this.getAttribute('data-navigate');
                     if (url) window.location.href = url;
                 });
+                // Hover effects are handled by CSS usually, but keeping JS for compatibility if needed
                 card.addEventListener('mouseenter', function () {
                     this.style.transform = 'translateY(-5px)';
                     this.style.boxShadow = '0 8px 32px rgba(67, 97, 238, 0.3)';
@@ -844,7 +520,7 @@
                 });
             });
 
-            // Navigation catégories
+            // Category Navigation Buttons
             const categoryUrls = {
                 'hardware': '{% url "hardware" %}',
                 'energy': '{% url "energy" %}',
@@ -862,145 +538,7 @@
                 });
             });
 
-            // Sidebar - Utiliser SidebarManager de utils.js
-            SidebarManager.init();
-        });
-
-        // ==================== SYSTÈME DE SESSION PROFESSIONNEL ====================
-        class ProfessionalAuthSystem {
-            constructor() {
-                this.sessionDuration = 30 * 60 * 1000; // 30 minutes en millisecondes
-                this.warningTime = 5 * 60 * 1000; // 5 minutes avant expiration
-                this.sessionStartTime = Date.now();
-                this.checkInterval = 60000; // Vérifier chaque minute
-
-                this.init();
-            }
-
-            init() {
-                this.updateSessionDisplay();
-                this.startSessionTimer();
-                this.setupEventListeners();
-
-            }
-
-            updateSessionDisplay() {
-                const now = new Date();
-                document.getElementById('sessionStart').textContent = now.toLocaleTimeString('fr-FR');
-                this.updateCountdown();
-            }
-
-            updateCountdown() {
-                const elapsed = Date.now() - this.sessionStartTime;
-                const remaining = Math.max(0, this.sessionDuration - elapsed);
-
-                const minutes = Math.floor(remaining / (60 * 1000));
-                const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
-
-                const countdownElement = document.getElementById('sessionCountdown');
-                countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-                // Changer la couleur selon le temps restant
-                if (remaining <= this.warningTime) {
-                    countdownElement.style.color = '#ef4444';
-                    countdownElement.previousElementSibling.style.color = '#ef4444';
-                } else if (remaining <= 10 * 60 * 1000) { // 10 minutes
-                    countdownElement.style.color = '#f59e0b';
-                    countdownElement.previousElementSibling.style.color = '#f59e0b';
-                }
-
-                // Expiration automatique
-                if (remaining <= 0) {
-                    this.handleSessionExpiry();
-                }
-            }
-
-            startSessionTimer() {
-                setInterval(() => {
-                    this.updateCountdown();
-                }, 1000);
-
-                // Vérification périodique de la session côté serveur
-                setInterval(() => {
-                    this.checkSessionStatus();
-                }, this.checkInterval);
-            }
-
-            async checkSessionStatus() {
-                try {
-                    const response = await fetch('/api/dashboard/', {
-                        method: 'HEAD',
-                        credentials: 'same-origin'
-                    });
-
-                    if (response.status === 401 || response.status === 403) {
-                        this.handleSessionExpiry();
-                    }
-                } catch (error) {
-                    console.warn('Erreur de vérification de session:', error);
-                }
-            }
-
-            handleSessionExpiry() {
-                // Afficher une notification d'expiration
-                notificationSystem.addNotification(
-                    'warning',
-                    'Session expirée',
-                    'Votre session a expiré. Vous allez être redirigé vers la page de connexion.',
-                    null
-                );
-
-                // Redirection après un délai
-                setTimeout(() => {
-                    window.location.href = '/api/login/';
-                }, 3000);
-            }
-
-            setupEventListeners() {
-                // Activité utilisateur pour prolonger la session
-                let activityTimeout;
-                const resetActivityTimeout = () => {
-                    clearTimeout(activityTimeout);
-                    activityTimeout = setTimeout(() => {
-                        this.extendSession();
-                    }, 30000); // Reset après 30 secondes d'inactivité
-                };
-
-                ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                    document.addEventListener(event, resetActivityTimeout, true);
-                });
-
-                resetActivityTimeout(); // Initialiser
-            }
-
-            extendSession() {
-                // Ici on pourrait faire un appel AJAX pour prolonger la session côté serveur
-                console.log('Session prolongée par activité utilisateur');
-            }
-
-
-        }
-
-        // Fonctions pour les contrôles de session
-        function showSessionInfo() {
-            document.getElementById('sessionInfo').classList.remove('hidden');
-        }
-
-        function hideSessionInfo() {
-            document.getElementById('sessionInfo').classList.add('hidden');
-        }
-
-        // Initialiser le système d'authentification professionnel
-        const authSystem = new ProfessionalAuthSystem();
-
-        // Cacher le panneau de session en cliquant en dehors
-        document.addEventListener('click', (e) => {
-            const sessionInfo = document.getElementById('sessionInfo');
-            const securityIndicator = document.querySelector('.security-indicator');
-
-            if (!sessionInfo.contains(e.target) && !securityIndicator.contains(e.target)) {
-                hideSessionInfo();
-            }
+            console.log('✅ Dashboard UI events initialized');
         });
     </script>
 </body>
