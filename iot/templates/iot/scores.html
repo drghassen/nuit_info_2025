@@ -149,39 +149,62 @@
 <script src="{% static 'js/scores.js' %}?v=2.0"></script>
 <script>
     function showRecommendations(recsData) {
+        console.log('Raw recsData:', recsData);
+
         try {
-            let recs;
+            let recs = {};
 
             // Handle different input formats
-            if (typeof recsData === 'string') {
+            if (typeof recsData === 'string' && recsData.trim() !== '' && recsData !== '{}') {
                 // Try to decode if it's URL-encoded (from JS dynamic render)
                 try {
                     recs = JSON.parse(decodeURIComponent(recsData));
-                } catch {
-                    // Try to parse Python dict format from Django template
-                    // Convert Python dict format to JSON: {'key': 'value'} -> {"key": "value"}
-                    const fixed = recsData
-                        .replace(/'/g, '"')
-                        .replace(/None/g, 'null')
-                        .replace(/True/g, 'true')
-                        .replace(/False/g, 'false');
-                    recs = JSON.parse(fixed);
+                } catch (e1) {
+                    console.log('URL decode failed, trying direct parse');
+                    try {
+                        recs = JSON.parse(recsData);
+                    } catch (e2) {
+                        console.log('Direct parse failed, trying Python dict conversion');
+                        // Try to parse Python dict format from Django template
+                        // Convert Python dict format to JSON: {'key': 'value'} -> {"key": "value"}
+                        // Handle emoji by being more careful with quotes
+                        let fixed = recsData;
+
+                        // Replace Python-style quotes with JSON-style
+                        // Match key patterns: 'key':
+                        fixed = fixed.replace(/'([^']+)':/g, '"$1":');
+                        // Match string values: : 'value' (but not within values)
+                        fixed = fixed.replace(/: '([^']*)'/g, ': "$1"');
+                        // Handle remaining single quotes that might be in values
+                        fixed = fixed.replace(/None/g, 'null');
+                        fixed = fixed.replace(/True/g, 'true');
+                        fixed = fixed.replace(/False/g, 'false');
+
+                        console.log('Fixed string:', fixed);
+                        recs = JSON.parse(fixed);
+                    }
                 }
-            } else {
+            } else if (typeof recsData === 'object' && recsData !== null) {
                 recs = recsData;
             }
 
-            document.getElementById('rec-eco-content').textContent = recs.eco || 'Aucune recommandation disponible.';
-            document.getElementById('rec-obs-content').textContent = recs.obsolescence || 'Aucune recommandation disponible.';
-            document.getElementById('rec-dep-content').textContent = recs.dependency || 'Aucune recommandation disponible.';
+            console.log('Parsed recs:', recs);
+
+            const ecoContent = recs.eco || 'Aucune recommandation disponible.';
+            const obsContent = recs.obsolescence || 'Aucune recommandation disponible.';
+            const depContent = recs.dependency || 'Aucune recommandation disponible.';
+
+            document.getElementById('rec-eco-content').textContent = ecoContent;
+            document.getElementById('rec-obs-content').textContent = obsContent;
+            document.getElementById('rec-dep-content').textContent = depContent;
 
             new bootstrap.Modal(document.getElementById('recommendationsModal')).show();
         } catch (e) {
             console.error('Erreur affichage recommandations:', e, 'Data:', recsData);
-            // Show error in modal
+            // Show error in modal with debug info
             document.getElementById('rec-eco-content').textContent = 'Erreur de chargement';
             document.getElementById('rec-obs-content').textContent = 'Erreur de chargement';
-            document.getElementById('rec-dep-content').textContent = 'Erreur de chargement';
+            document.getElementById('rec-dep-content').textContent = 'Vérifiez la console pour plus de détails';
             new bootstrap.Modal(document.getElementById('recommendationsModal')).show();
         }
     }

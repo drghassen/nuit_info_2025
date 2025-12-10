@@ -1,26 +1,76 @@
+/**
+ * Quiz Application
+ * Now loads questions from database API instead of static file
+ */
+
 // Variables globales
 let current = 0;
 let score = 0;
-const selected = new Array(questions.length).fill(null);
+let questions = [];
+let selected = [];
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('score').textContent = score;
-  updateStats();
-  renderQuestion();
-  updateRandomFact();
-  
-  // Mettre à jour le fait aléatoire toutes les 15 secondes
-  setInterval(updateRandomFact, 15000);
-  
-  // Événements des boutons
-  document.getElementById('prevBtn').addEventListener('click', prevQuestion);
-  document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+// Faits aléatoires (conservés côté client pour performance)
+const randomFacts = [
+  "Un Raspberry Pi bien optimisé consomme moins qu'une ampoule LED. Oui, vraiment.",
+  "Internet pèse environ 50 grammes. Non je déconne, mais les datacenters consomment 1% de l'électricité mondiale.",
+  "Envoyer un email = 4g de CO₂. Arrêtez de CC tout le monde.",
+  "Un serveur mal optimisé = chauffage gratuit. Mais cher quand même.",
+  "Le cloud c'est juste l'ordinateur de quelqu'un d'autre qui consomme aussi.",
+  "Votre vieux device qui marche > nouveau device 'éco' en termes d'impact.",
+  "Un code optimisé peut réduire la consommation de 70%. C'est pas magique, c'est juste bien codé."
+];
+
+// Humeurs
+const moods = [
+  { emoji: "🤔", text: "Hmm... Intéressant", color: "rgba(148,163,184,0.1)" },
+  { emoji: "😅", text: "Bon début !", color: "rgba(245,158,11,0.1)" },
+  { emoji: "😊", text: "Ça chauffe !", color: "rgba(67,97,238,0.1)" },
+  { emoji: "😎", text: "On the fire ! 🔥", color: "rgba(16,185,129,0.1)" },
+  { emoji: "🤩", text: "INCROYABLE !", color: "rgba(16,185,129,0.15)" },
+  { emoji: "🏆", text: "LÉGENDE ABSOLUE !", color: "rgba(245,158,11,0.2)" }
+];
+
+// Initialisation - charge les questions depuis l'API
+document.addEventListener('DOMContentLoaded', async function () {
+  await loadQuestions();
 });
+
+// Charger les questions depuis l'API
+async function loadQuestions() {
+  try {
+    const response = await fetch('/api/quiz/questions/');
+    if (!response.ok) throw new Error('Failed to load questions');
+
+    const data = await response.json();
+    questions = data.questions;
+    selected = new Array(questions.length).fill(null);
+
+    document.getElementById('score').textContent = score;
+    updateStats();
+    renderQuestion();
+    updateRandomFact();
+
+    // Mettre à jour le fait aléatoire toutes les 15 secondes
+    setInterval(updateRandomFact, 15000);
+
+    // Événements des boutons
+    document.getElementById('prevBtn').addEventListener('click', prevQuestion);
+    document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+
+  } catch (error) {
+    console.error('Error loading questions:', error);
+    document.getElementById('quiz').innerHTML = `
+      <div class="alert alert-danger text-center">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Erreur de chargement des questions. Veuillez rafraîchir la page.
+      </div>
+    `;
+  }
+}
 
 // Fonctions d'affichage
 function createEmojiRain(emoji, count = 15) {
-  for(let i = 0; i < count; i++) {
+  for (let i = 0; i < count; i++) {
     setTimeout(() => {
       const el = document.createElement('div');
       el.className = 'emoji-rain';
@@ -35,7 +85,7 @@ function createEmojiRain(emoji, count = 15) {
 
 function createConfetti() {
   const colors = ['#4361ee', '#10b981', '#f59e0b', '#ef4444', '#a78bfa', '#22d3ee'];
-  for(let i = 0; i < 50; i++) {
+  for (let i = 0; i < 50; i++) {
     setTimeout(() => {
       const el = document.createElement('div');
       el.className = 'confetti';
@@ -57,9 +107,9 @@ function showReaction(text) {
 }
 
 function updateMood() {
-  const percentage = (score / questions.length) * 100;
+  const percentage = questions.length > 0 ? (score / questions.length) * 100 : 0;
   let moodIndex = Math.min(5, Math.floor(percentage / 20));
-  
+
   const moodData = moods[moodIndex];
   const moodContainer = document.getElementById('moodMeter');
   document.getElementById('moodEmoji').textContent = moodData.emoji;
@@ -85,6 +135,8 @@ function updateStats() {
 }
 
 function renderQuestion() {
+  if (questions.length === 0) return;
+
   const q = questions[current];
   const root = document.getElementById('quiz');
   const pct = Math.round(((current) / questions.length) * 100);
@@ -95,8 +147,8 @@ function renderQuestion() {
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
   prevBtn.disabled = current === 0;
-  
-  if(current === questions.length - 1) {
+
+  if (current === questions.length - 1) {
     nextBtn.innerHTML = 'Découvrir mon destin <i class="fas fa-scroll ms-2"></i>';
   } else {
     nextBtn.innerHTML = 'Continuer l\'aventure <i class="fas fa-rocket ms-2"></i>';
@@ -105,7 +157,7 @@ function renderQuestion() {
   root.innerHTML = `
     <div class="mb-3">
       <span class="badge bg-gradient" style="background: linear-gradient(135deg, var(--primary), var(--success));">
-        📍 Question ${current+1} / ${questions.length}
+        📍 Question ${current + 1} / ${questions.length}
       </span>
     </div>
     <div class="question-text">${q.q}</div>
@@ -125,12 +177,12 @@ function renderQuestion() {
 
   root.querySelectorAll('.option').forEach(el => {
     el.addEventListener('click', () => {
-      if(selected[current] !== null) return;
+      if (selected[current] !== null) return;
       const idx = Number(el.dataset.index);
       selected[current] = idx;
       const isCorrect = idx === questions[current].answer;
-      
-      if(isCorrect) {
+
+      if (isCorrect) {
         score++;
         const reactions = q.reactions.correct;
         showReaction(reactions[Math.floor(Math.random() * reactions.length)]);
@@ -141,7 +193,7 @@ function renderQuestion() {
         showReaction(reactions[Math.floor(Math.random() * reactions.length)]);
         createEmojiRain('💀', 6);
       }
-      
+
       document.getElementById('score').textContent = score;
       nextBtn.disabled = false;
       renderQuestion();
@@ -152,14 +204,14 @@ function renderQuestion() {
 
 // Navigation
 function prevQuestion() {
-  if(current > 0) {
+  if (current > 0) {
     current--;
     renderQuestion();
   }
 }
 
 function nextQuestion() {
-  if(current < questions.length - 1) {
+  if (current < questions.length - 1) {
     current++;
     renderQuestion();
   } else {
@@ -168,14 +220,25 @@ function nextQuestion() {
 }
 
 // Résultats finaux
-function showFinalResults() {
+async function showFinalResults() {
   document.getElementById('progressBar').style.width = '100%';
   const root = document.getElementById('quiz');
   const percentage = (score / questions.length) * 100;
-  
+
+  // Envoyer le résultat au serveur
+  try {
+    await fetch('/api/quiz/submit/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score: score, total: questions.length })
+    });
+  } catch (error) {
+    console.warn('Failed to save quiz result:', error);
+  }
+
   let message, subMessage, emoji, color, badge;
-  
-  if(percentage === 100) {
+
+  if (percentage === 100) {
     message = "🎯 SCORE PARFAIT ! LÉGENDE CONFIRMÉE !";
     subMessage = "Vous êtes officiellement un Maître Jedi de l'IoT Éco-Responsable. Même Yoda est jaloux.";
     emoji = "👑";
@@ -184,26 +247,26 @@ function showFinalResults() {
     createConfetti();
     createEmojiRain('🏆', 30);
     createEmojiRain('👑', 20);
-  } else if(percentage >= 80) {
+  } else if (percentage >= 80) {
     message = "🔥 EXCELLENT ! Vous êtes dans le Top 1% !";
     subMessage = "Niveau: Expert Senior Principal Architect Lead. Vous pouvez mettre ça sur LinkedIn.";
     emoji = "🚀";
     color = "success";
     badge = "⭐ EXPERT CONFIRMÉ";
     createEmojiRain('⭐', 20);
-  } else if(percentage >= 60) {
+  } else if (percentage >= 60) {
     message = "👍 Solide ! Vous maîtrisez les bases !";
     subMessage = "Niveau: Développeur Conscient. Vous êtes sur la bonne voie, padawan.";
     emoji = "😎";
     color = "primary";
     badge = "💎 BON NIVEAU";
-  } else if(percentage >= 40) {
+  } else if (percentage >= 40) {
     message = "😅 Pas mal ! Mais faut réviser un peu...";
     subMessage = "Niveau: Junior Prometteur. On sent le potentiel, mais faut bosser.";
     emoji = "📚";
     color = "info";
     badge = "📖 EN APPRENTISSAGE";
-  } else if(percentage >= 20) {
+  } else if (percentage >= 20) {
     message = "😬 Ouch... Houston, we have a problem";
     subMessage = "Niveau: Stagiaire Premier Jour. Pas de panique, tout le monde est passé par là !";
     emoji = "🆘";
@@ -216,7 +279,7 @@ function showFinalResults() {
     color = "danger";
     badge = "🚨 URGENT: RELIRE LES DOCS";
   }
-  
+
   root.innerHTML = `<div class='text-center py-5'>
     <div class='mb-4' style='font-size: 6rem; animation: bounce 1s infinite;'>${emoji}</div>
     
@@ -250,7 +313,7 @@ function showFinalResults() {
       </small>
     </div>
   </div>`;
-  
+
   document.getElementById('prevBtn').disabled = true;
   document.getElementById('nextBtn').disabled = true;
 }

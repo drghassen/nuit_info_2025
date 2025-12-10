@@ -258,3 +258,69 @@ def extend_session(request):
     request.session['last_activity'] = time.time()
     
     return JsonResponse({'message': 'Session extended', 'success': True}, status=200)
+
+
+@require_http_methods(["GET"])
+def get_quiz_questions(request):
+    """
+    Get all active quiz questions from the database.
+    Returns questions in JSON format suitable for JavaScript quiz.
+    """
+    from ..models import QuizQuestion
+    
+    questions = QuizQuestion.objects.filter(is_active=True).order_by('order', 'id')
+    
+    questions_data = []
+    for q in questions:
+        questions_data.append({
+            'id': q.id,
+            'q': q.question,
+            'options': q.options,
+            'answer': q.correct_answer,
+            'reactions': {
+                'correct': q.reactions_correct,
+                'wrong': q.reactions_wrong
+            },
+            'funFact': q.fun_fact
+        })
+    
+    return JsonResponse({
+        'questions': questions_data,
+        'total': len(questions_data)
+    }, status=200)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def submit_quiz_result(request):
+    """
+    Submit a quiz result and save it to the database.
+    """
+    from ..models import QuizResult
+    
+    try:
+        data = json.loads(request.body)
+        score = data.get('score', 0)
+        total = data.get('total', 0)
+        
+        if total > 0:
+            percentage = (score / total) * 100
+        else:
+            percentage = 0
+        
+        result = QuizResult.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            score=score,
+            total_questions=total,
+            percentage=percentage
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'result_id': result.id,
+            'percentage': round(percentage, 1)
+        }, status=201)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+

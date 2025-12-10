@@ -23,7 +23,9 @@ from .api_views import (
     get_scores_data,
     get_history_data,
     get_session_info,
-    extend_session
+    extend_session,
+    get_quiz_questions,
+    submit_quiz_result
 )
 
 __all__ = [
@@ -48,4 +50,6 @@ __all__ = [
     'get_history_data',
     'get_session_info',
     'extend_session',
+    'get_quiz_questions',
+    'submit_quiz_result',
 ]

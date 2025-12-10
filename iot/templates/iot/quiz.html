@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,13 +11,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/quiz.css' %}">
 </head>
+
 <body>
   <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
     <div class="container-fluid px-4">
-      <a class="navbar-brand fw-bold fs-4" href="{% url 'dashboard' %}"><i class="fas fa-leaf text-success me-2"></i>EcoTrack <span class="text-primary">IoT</span></a>
+      <a class="navbar-brand fw-bold fs-4" href="{% url 'dashboard' %}"><i
+          class="fas fa-leaf text-success me-2"></i>EcoTrack <span class="text-primary">IoT</span></a>
       <div class="d-flex align-items-center gap-2">
         <span class="badge bg-warning text-dark">🔥 Mode Expert Activé</span>
-        <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-gauge-high me-1"></i> Dashboard</a>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-sm"><i class="fas fa-gauge-high me-1"></i>
+          Dashboard</a>
       </div>
     </div>
   </nav>
@@ -29,7 +33,8 @@
             <i class="fas fa-brain text-primary me-2"></i>Quiz Certifié ISO 9001 de l'IoT Éco-Responsable
             <span class="sarcasm-badge">100% Sérieux</span>
           </h3>
-          <div class="subtitle">"Parce que sauver la planète, c'est aussi une question de RAM" - Gandhi (probablement)</div>
+          <div class="subtitle">"Parce que sauver la planète, c'est aussi une question de RAM" - Gandhi (probablement)
+          </div>
         </div>
         <div class="d-flex align-items-center gap-3">
           <div class="badge bg-primary p-2 px-3 fs-6">🏆 Score: <span id="score">0</span></div>
@@ -74,7 +79,7 @@
             <span class="stat-value text-warning" id="statRemaining">10</span>
           </div>
         </div>
-        
+
         <div class="glass aside-card mt-3">
           <h5 class="mb-3"><i class="fas fa-face-laugh-squint text-success me-2"></i>Humeuromètre™</h5>
           <div class="mood-container" id="moodMeter">
@@ -91,12 +96,12 @@
     </div>
   </div>
 
-  <script src="{% static 'js/quiz-data.js' %}"></script>
-  <script src="{% static 'js/quiz-app.js' %}"></script>
+  <script src="{% static 'js/quiz-app.js' %}?v=2.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Variable globale pour l'URL du dashboard (injectée depuis Django)
     const DASHBOARD_URL = "{% url 'dashboard' %}";
   </script>
 </body>
+
 </html>

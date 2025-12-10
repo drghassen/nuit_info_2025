@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class IoTData(models.Model):
@@ -43,3 +44,62 @@ class IoTData(models.Model):
 
     def __str__(self):
         return f"IoT Data {self.id} - {self.created_at}"
+
+
+class QuizQuestion(models.Model):
+    """Model for storing quiz questions in the database"""
+    
+    question = models.TextField(help_text="The question text")
+    options = models.JSONField(help_text="List of 4 answer options")
+    correct_answer = models.IntegerField(help_text="Index of correct answer (0-3)")
+    reactions_correct = models.JSONField(
+        default=list, 
+        help_text="List of reactions to show on correct answer"
+    )
+    reactions_wrong = models.JSONField(
+        default=list, 
+        help_text="List of reactions to show on wrong answer"
+    )
+    fun_fact = models.TextField(
+        blank=True, 
+        help_text="Fun fact displayed after answering"
+    )
+    order = models.IntegerField(
+        default=0, 
+        help_text="Display order of the question"
+    )
+    is_active = models.BooleanField(
+        default=True, 
+        help_text="Whether this question is active"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"Q{self.order}: {self.question[:50]}..."
+
+
+class QuizResult(models.Model):
+    """Model for storing user quiz results"""
+    
+    user = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE, 
+        related_name='quiz_results',
+        null=True,
+        blank=True
+    )
+    score = models.IntegerField(help_text="Number of correct answers")
+    total_questions = models.IntegerField(help_text="Total questions answered")
+    percentage = models.FloatField(help_text="Score as percentage")
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-completed_at']
+
+    def __str__(self):
+        return f"{self.user.username if self.user else 'Anonymous'}: {self.score}/{self.total_questions}"
+

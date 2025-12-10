@@ -14,12 +14,17 @@ urlpatterns = [
     path('quiz/', views.quiz_view, name='quiz'),
     path('latest-data/', views.get_latest_data, name='get_latest_data'),
     path('dashboard-data/', views.get_dashboard_data, name='get_dashboard_data'),
-    path('api/hardware/', views.get_hardware_data, name='api_hardware'),
-    path('api/energy/', views.get_energy_data, name='api_energy'),
-    path('api/network/', views.get_network_data, name='api_network'),
-    path('api/scores/', views.get_scores_data, name='api_scores'),
+    path('hardware-data/', views.get_hardware_data, name='api_hardware'),
+    path('energy-data/', views.get_energy_data, name='api_energy'),
+    path('network-data/', views.get_network_data, name='api_network'),
+    path('scores-data/', views.get_scores_data, name='api_scores'),
     path('history/', views.get_history_data, name='api_history'),
     # Session management APIs
-    path('api/session-info/', views.get_session_info, name='api_session_info'),
-    path('api/extend-session/', views.extend_session, name='api_extend_session'),
+    path('session-info/', views.get_session_info, name='api_session_info'),
+    path('extend-session/', views.extend_session, name='api_extend_session'),
+    # Quiz APIs
+    path('quiz/questions/', views.get_quiz_questions, name='api_quiz_questions'),
+    path('quiz/submit/', views.submit_quiz_result, name='api_quiz_submit'),
 ]
+
+
