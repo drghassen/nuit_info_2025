@@ -21,7 +21,15 @@ class ChatbotSystem {
         const chatbotClose = document.getElementById('chatbotClose');
         const chatbotSend = document.getElementById('chatbotSend');
         const chatbotInput = document.getElementById('chatbotInput');
-        if (chatbotBtn) chatbotBtn.addEventListener('click', () => this.toggleChatbot());
+        if (chatbotBtn) {
+            chatbotBtn.addEventListener('click', () => {
+                console.log('Chatbot button clicked');
+                this.toggleChatbot();
+            });
+            console.log('✅ Chatbot button event listener attached');
+        } else {
+            console.error('❌ Chatbot button not found');
+        }
         if (chatbotClose) chatbotClose.addEventListener('click', () => this.toggleChatbot());
         if (chatbotSend) chatbotSend.addEventListener('click', () => this.sendMessage());
         if (chatbotInput) chatbotInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') this.sendMessage(); });

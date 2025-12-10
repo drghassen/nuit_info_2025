@@ -79,6 +79,9 @@ class NotificationSystem {
                 e.stopPropagation();
                 this.toggleNotificationsPanel();
             });
+            console.log('✅ Notification button event listener attached');
+        } else {
+            console.error('❌ Notification button not found during initialization');
         }
         if (clearAllBtn) {
             clearAllBtn.addEventListener('click', (e) => {
@@ -252,7 +255,7 @@ class NotificationSystem {
     }
 
     getIconForType(type) {
-        switch(type) {
+        switch (type) {
             case 'danger': return 'fa-exclamation-circle';
             case 'warning': return 'fa-triangle-exclamation';
             case 'info': return 'fa-info-circle';

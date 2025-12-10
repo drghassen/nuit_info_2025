@@ -16,59 +16,6 @@
     <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <style>
-        .welcome-banner {
-            position: relative;
-            transition: opacity 1s ease-out, transform 0.5s ease-out;
-        }
-
-        .welcome-banner.fade-out {
-            opacity: 0;
-            transform: translateY(-20px);
-            pointer-events: none;
-        }
-
-        .welcome-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        .welcome-icon {
-            animation: floatIcon 3s ease-in-out infinite;
-        }
-
-        @keyframes floatIcon {
-
-            0%,
-            100% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .welcome-title {
-            background: linear-gradient(45deg, #e2e8f0, #f1f5f9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-        }
-
-        .welcome-subtitle {
-            font-size: 1rem;
-            color: rgba(226, 232, 240, 0.9);
-        }
-
-        .welcome-badges {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
         .badge-professional {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(67, 97, 238, 0.2));
             border: 1px solid rgba(16, 185, 129, 0.3);
@@ -194,14 +141,6 @@
         }
 
         @media (max-width: 768px) {
-            .welcome-badges {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .badge-professional {
-                margin-bottom: 0.5rem;
-            }
 
             .session-info {
                 top: 10px;
@@ -344,34 +283,7 @@
             </nav>
             <!-- Contenu -->
             <div class="container-fluid content-shift">
-                <!-- Welcome Section - Affichée seulement après le login -->
-                {% if show_welcome and user.is_authenticated %}
-                <div class="welcome-banner mb-4" id="welcome-banner">
-                    <div class="glass-card p-4 text-center">
-                        <div class="welcome-content">
-                            <div class="welcome-icon mb-3">
-                                <i class="fas fa-user-circle fa-3x text-primary"></i>
-                            </div>
-                            <h2 class="welcome-title mb-2">
-                                Bienvenue, <span class="text-primary">{{ user.get_full_name|default:user.username
-                                    }}</span> ! 👋
-                            </h2>
-                            <p class="welcome-subtitle opacity-75 mb-0">
-                                Connecté en tant que <strong>{{ user.username }}</strong> • Session active
-                            </p>
-                            <div class="welcome-badges mt-3">
-                                <span class="badge badge-professional">
-                                    <i class="fas fa-shield-alt me-1"></i>Authentifié
-                                </span>
-                                <span class="badge badge-professional">
-                                    <i class="fas fa-clock me-1"></i>Dernière connexion: {{ user.last_login|date:"d/m/Y
-                                    H:i" }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
+
 
                 <!-- Header -->
                 <div class="text-center mb-5">
@@ -383,59 +295,67 @@
                 <!-- Catégories -->
                 <div class="row g-4 mb-5">
                     <div class="col-md-3">
-                        <div class="category-btn glass-card" data-category="hardware">
+                        <a href="{% url 'hardware' %}" class="category-btn glass-card text-decoration-none d-block"
+                            data-category="hardware">
                             <i class="fas fa-microchip fa-2x mb-3 text-primary"></i>
-                            <h5 class="fw-semibold">Matériel</h5>
-                            <small>CPU • RAM • Batterie</small>
-                        </div>
+                            <h5 class="fw-semibold text-light">Matériel</h5>
+                            <small class="text-light opacity-75">CPU • RAM • Batterie</small>
+                        </a>
                     </div>
                     <div class="col-md-3">
-                        <div class="category-btn glass-card" data-category="energy">
+                        <a href="{% url 'energy' %}" class="category-btn glass-card text-decoration-none d-block"
+                            data-category="energy">
                             <i class="fas fa-bolt fa-2x mb-3 text-warning"></i>
-                            <h5 class="fw-semibold">Énergie</h5>
-                            <small>Puissance • Température</small>
-                        </div>
+                            <h5 class="fw-semibold text-light">Énergie</h5>
+                            <small class="text-light opacity-75">Puissance • Température</small>
+                        </a>
                     </div>
                     <div class="col-md-3">
-                        <div class="category-btn glass-card" data-category="network">
+                        <a href="{% url 'network' %}" class="category-btn glass-card text-decoration-none d-block"
+                            data-category="network">
                             <i class="fas fa-wifi fa-2x mb-3 text-info"></i>
-                            <h5 class="fw-semibold">Réseau</h5>
-                            <small>Requêtes • Cloud</small>
-                        </div>
+                            <h5 class="fw-semibold text-light">Réseau</h5>
+                            <small class="text-light opacity-75">Requêtes • Cloud</small>
+                        </a>
                     </div>
                     <div class="col-md-3">
-                        <div class="category-btn glass-card active">
+                        <a href="{% url 'scores' %}" class="category-btn glass-card text-decoration-none d-block"
+                            data-category="scores">
                             <i class="fas fa-chart-bar fa-2x mb-3 text-success"></i>
-                            <h5 class="fw-semibold">Scores Éco</h5>
-                            <small>Impact • Obsolescence</small>
-                        </div>
+                            <h5 class="fw-semibold text-light">Scores Éco</h5>
+                            <small class="text-light opacity-75">Impact • Obsolescence</small>
+                        </a>
                     </div>
                 </div>
                 <!-- Métriques principales -->
                 <div class="row g-4 mb-5">
                     <div class="col-lg-3 col-md-6">
-                        <div class="glass-card p-4 text-center">
+                        <div class="glass-card p-4 text-center metric-card-clickable"
+                            data-navigate="{% url 'hardware' %}" style="cursor: pointer; transition: all 0.3s ease;">
                             <i class="fas fa-microchip fa-2x text-primary mb-3"></i>
                             <p class="mb-1 opacity-75">CPU Moyen</p>
                             <h3 class="metric-big text-primary" id="avg-cpu">--%</h3>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="glass-card p-4 text-center">
+                        <div class="glass-card p-4 text-center metric-card-clickable"
+                            data-navigate="{% url 'hardware' %}" style="cursor: pointer; transition: all 0.3s ease;">
                             <i class="fas fa-memory fa-2x text-purple mb-3"></i>
                             <p class="mb-1 opacity-75">RAM Moyenne</p>
                             <h3 class="metric-big text-purple" id="avg-ram">--%</h3>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="glass-card p-4 text-center">
+                        <div class="glass-card p-4 text-center metric-card-clickable" data-navigate="{% url 'energy' %}"
+                            style="cursor: pointer; transition: all 0.3s ease;">
                             <i class="fas fa-bolt fa-2x text-warning mb-3"></i>
                             <p class="mb-1 opacity-75">Puissance</p>
                             <h3 class="metric-big text-warning" id="avg-power">-- W</h3>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="glass-card p-4 text-center">
+                        <div class="glass-card p-4 text-center metric-card-clickable" data-navigate="{% url 'scores' %}"
+                            style="cursor: pointer; transition: all 0.3s ease;">
                             <i class="fas fa-leaf fa-2x text-success mb-3"></i>
                             <p class="mb-1 opacity-75">Score Éco Global</p>
                             <h3 class="metric-big text-success" id="avg-eco">--</h3>
@@ -536,6 +456,8 @@
     <script src="{% static 'js/notification.js' %}"></script>
     <script src="{% static 'js/chatbot.js' %}"></script>
     <script src="{% static 'js/websocket-client.js' %}"></script>
+    <script src="{% static 'js/dashboard-core.js' %}"></script>
+    <script src="{% static 'js/dashboard-realtime.js' %}"></script>
     <!-- Données initiales depuis Django (format JSON pour éviter les erreurs de linter) -->
     <script type="application/json" id="initial-dashboard-data">
     {
@@ -562,8 +484,19 @@
     </script>
     <script>
         // ==================== DASHBOARD IoT ====================
-        const notificationSystem = new NotificationSystem();
-        const chatbotSystem = new ChatbotSystem();
+        // Wait for DOM to be ready before initializing systems
+        // Wait for DOM to be ready before initializing systems
+        // Attached to window for global access
+        window.notificationSystem = null;
+        window.chatbotSystem = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize notification and chatbot systems
+            // Initialize notification and chatbot systems
+            window.notificationSystem = new NotificationSystem();
+            window.chatbotSystem = new ChatbotSystem();
+            console.log('✅ Notification and Chatbot systems initialized globally');
+        });
 
         let chartLabels = [], cpuData = [], ramData = [], powerData = [], ecoData = [], co2Data = [], latestData = [];
         const charts = {};
@@ -887,30 +820,51 @@
         // Connexion WebSocket pour les mises à jour en temps réel
         wsClient.connect();
 
-        // Nettoyer la connexion à la fermeture de la page
-        window.addEventListener('beforeunload', () => {
-            wsClient.disconnect();
-        });
-        // Navigation catégories
-        const categoryUrls = {
-            'hardware': '{% url "hardware" %}',
-            'energy': '{% url "energy" %}',
-            'network': '{% url "network" %}',
-            'scores': '{% url "scores" %}'
-        };
+        // Notification and chatbot systems already declared at line 484
 
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            btn.style.cursor = 'pointer';
-            btn.addEventListener('click', () => {
-                const cat = btn.dataset.category;
-                if (cat && categoryUrls[cat]) {
-                    window.location.href = categoryUrls[cat];
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize notification and chatbot systems
+            notificationSystem = new NotificationSystem();
+            chatbotSystem = new ChatbotSystem();
+            console.log('✅ Notification and Chatbot systems initialized');
+
+            // Make metric cards clickable
+            document.querySelectorAll('.metric-card-clickable').forEach(card => {
+                card.addEventListener('click', function () {
+                    const url = this.getAttribute('data-navigate');
+                    if (url) window.location.href = url;
+                });
+                card.addEventListener('mouseenter', function () {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.boxShadow = '0 8px 32px rgba(67, 97, 238, 0.3)';
+                });
+                card.addEventListener('mouseleave', function () {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '';
+                });
             });
-        });
 
-        // Sidebar - Utiliser SidebarManager de utils.js
-        SidebarManager.init();
+            // Navigation catégories
+            const categoryUrls = {
+                'hardware': '{% url "hardware" %}',
+                'energy': '{% url "energy" %}',
+                'network': '{% url "network" %}',
+                'scores': '{% url "scores" %}'
+            };
+
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.style.cursor = 'pointer';
+                btn.addEventListener('click', () => {
+                    const cat = btn.dataset.category;
+                    if (cat && categoryUrls[cat]) {
+                        window.location.href = categoryUrls[cat];
+                    }
+                });
+            });
+
+            // Sidebar - Utiliser SidebarManager de utils.js
+            SidebarManager.init();
+        });
 
         // ==================== SYSTÈME DE SESSION PROFESSIONNEL ====================
         class ProfessionalAuthSystem {
@@ -927,8 +881,7 @@
                 this.updateSessionDisplay();
                 this.startSessionTimer();
                 this.setupEventListeners();
-                this.showWelcomeNotification();
-                this.initWelcomeBannerAutoHide();
+
             }
 
             updateSessionDisplay() {
@@ -1025,30 +978,7 @@
                 console.log('Session prolongée par activité utilisateur');
             }
 
-            showWelcomeNotification() {
-                setTimeout(() => {
-                    notificationSystem.addNotification(
-                        'success',
-                        'Connexion réussie',
-                        'Bienvenue dans votre tableau de bord EcoTrack IoT !',
-                        null
-                    );
-                }, 1000);
-            }
 
-            // Auto-hide welcome banner after 15 seconds
-            initWelcomeBannerAutoHide() {
-                const welcomeBanner = document.getElementById('welcome-banner');
-                if (welcomeBanner) {
-                    setTimeout(() => {
-                        welcomeBanner.classList.add('fade-out');
-                        // Remove from DOM after animation completes
-                        setTimeout(() => {
-                            welcomeBanner.style.display = 'none';
-                        }, 1000);
-                    }, 5000);
-                }
-            }
         }
 
         // Fonctions pour les contrôles de session

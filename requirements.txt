@@ -1,0 +1,30 @@
+# ============================================================================
+# ECOTRACK IOT - PYTHON DEPENDENCIES
+# ============================================================================
+# Core Django & Production Server
+Django==5.2.7
+daphne==4.1.0
+
+# WebSocket Support
+channels==4.1.0
+
+# Environment Variables
+python-decouple==3.8
+
+# Security & Rate Limiting
+django-ratelimit==4.1.0
+
+# Development Tools (comment out in production)
+django-debug-toolbar==4.4.6
+
+# Testing
+coverage==7.6.1
+pytest==8.3.3
+pytest-django==4.9.0
+
+# Database (if switching to PostgreSQL later)
+# psycopg2-binary==2.9.9
+
+# Cache (if adding Redis later)
+# redis==5.0.8
+# django-redis==5.4.0

@@ -1,0 +1,702 @@
+/**
+ * ============================================================================
+ * ECOTRACK IOT - LOGIN PAGE STYLES
+ * ============================================================================
+ * Extracted from login.html for better organization
+ * Premium glassmorphism design with animations
+ */
+
+/* ============================================================================
+   BASE RESET & TYPOGRAPHY
+   ============================================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+}
+
+/* ============================================================================
+   MAIN CONTAINER & LAYOUT
+   ============================================================================ */
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+/* ============================================================================
+   ANIMATED BACKGROUND SHAPES
+   ============================================================================ */
+
+.floating-shapes {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+}
+
+.shape {
+    position: absolute;
+    opacity: 0.1;
+    animation: float 20s infinite linear;
+}
+
+.shape:nth-child(1) {
+    top: 10%;
+    left: 10%;
+    width: 80px;
+    height: 80px;
+    background: #10b981;
+    border-radius: 50%;
+    animation-delay: 0s;
+}
+
+.shape:nth-child(2) {
+    top: 20%;
+    right: 10%;
+    width: 60px;
+    height: 60px;
+    background: #4361ee;
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    animation-delay: -5s;
+}
+
+.shape:nth-child(3) {
+    bottom: 20%;
+    left: 20%;
+    width: 100px;
+    height: 100px;
+    background: #f59e0b;
+    border-radius: 20px;
+    transform: rotate(45deg);
+    animation-delay: -10s;
+}
+
+.shape:nth-child(4) {
+    bottom: 10%;
+    right: 20%;
+    width: 70px;
+    height: 70px;
+    background: #ef4444;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    animation-delay: -15s;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    33% {
+        transform: translateY(-30px) rotate(120deg);
+    }
+    66% {
+        transform: translateY(20px) rotate(240deg);
+    }
+    100% {
+        transform: translateY(0px) rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   LOGIN CARD - GLASSMORPHISM
+   ============================================================================ */
+
+.login-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 900px;
+    min-height: 500px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+    animation: slideIn 0.6s ease-out;
+    overflow: hidden;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ============================================================================
+   TWO-COLUMN LAYOUT
+   ============================================================================ */
+
+.left-panel {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(67, 97, 238, 0.1));
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+.left-panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(16,185,129,0.1)"/><circle cx="80" cy="80" r="2" fill="rgba(67,97,238,0.1)"/><circle cx="60" cy="30" r="1" fill="rgba(245,158,11,0.1)"/></svg>');
+    opacity: 0.5;
+}
+
+.right-panel {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.brand-section {
+    position: relative;
+    z-index: 2;
+}
+
+/* ============================================================================
+   BRANDING
+   ============================================================================ */
+
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.brand i {
+    font-size: 2.5rem;
+    color: #10b981;
+    animation: pulse 2s infinite;
+    filter: drop-shadow(0 0 20px rgba(16, 185, 129, 0.3));
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.brand span {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+}
+
+.brand span.primary {
+    color: #4361ee;
+    background: linear-gradient(45deg, #4361ee, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ============================================================================
+   CONTENT SECTIONS
+   ============================================================================ */
+
+.welcome-text {
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 1.1rem;
+    font-weight: 300;
+    margin-bottom: 2rem;
+    line-height: 1.4;
+}
+
+.eco-tip {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(67, 97, 238, 0.1));
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.eco-tip::before {
+    content: '💡';
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 1.2rem;
+    opacity: 0.7;
+}
+
+.eco-tip h6 {
+    color: #10b981;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.eco-tip p {
+    color: rgba(226, 232, 240, 0.8);
+    font-size: 0.85rem;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.features-list {
+    margin-top: 2rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    color: rgba(226, 232, 240, 0.8);
+    font-size: 0.9rem;
+}
+
+.feature-item i {
+    width: 20px;
+    opacity: 0.8;
+}
+
+/* ============================================================================
+   FORM SECTION
+   ============================================================================ */
+
+.form-section {
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-title {
+    color: #e2e8f0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.form-subtitle {
+    color: rgba(226, 232, 240, 0.7);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.form-group {
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+
+.form-label {
+    color: #e2e8f0;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.form-control {
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    width: 100%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-control:focus {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: #4361ee;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15),
+                0 6px 24px rgba(67, 97, 238, 0.1);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.form-control::placeholder {
+    color: rgba(226, 232, 240, 0.5);
+    font-style: italic;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.btn-login {
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 0.875rem 2rem;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 1rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(16, 185, 129, 0.3);
+}
+
+.btn-login::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-login:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px rgba(16, 185, 129, 0.4);
+}
+
+.btn-login:hover::before {
+    left: 100%;
+}
+
+.btn-login:active {
+    transform: translateY(-1px);
+}
+
+.btn-login i {
+    margin-right: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-login:hover i {
+    transform: scale(1.1);
+}
+
+/* ============================================================================
+   ALERTS
+   ============================================================================ */
+
+.alert {
+    border-radius: 16px;
+    border: none;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: currentColor;
+}
+
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    border-left: 4px solid #ef4444;
+}
+
+.alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #6ee7b7;
+    border-left: 4px solid #10b981;
+}
+
+/* ============================================================================
+   FOOTER
+   ============================================================================ */
+
+.footer-text {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-text small {
+    color: rgba(226, 232, 240, 0.6);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.footer-text i {
+    color: #10b981;
+    animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================================================
+   SURPRISE ELEMENT
+   ============================================================================ */
+
+.surprise-element {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, #f59e0b, #d97706);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3);
+    z-index: 10;
+}
+
+.surprise-element:hover {
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 12px 48px rgba(245, 158, 11, 0.4);
+}
+
+.surprise-element i {
+    color: white;
+    font-size: 1.5rem;
+}
+
+/* ============================================================================
+   LOADING STATE
+   ============================================================================ */
+
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    margin: auto;
+    border: 2px solid transparent;
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN - MOBILE
+   ============================================================================ */
+
+@media (max-width: 767px) {
+    .login-container {
+        padding: 0.5rem;
+    }
+
+    .login-card {
+        min-height: auto;
+        max-width: none;
+        margin: 0.5rem;
+    }
+
+    .left-panel,
+    .right-panel {
+        padding: 2rem 1.5rem;
+    }
+
+    .left-panel {
+        order: 2;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .right-panel {
+        order: 1;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .brand {
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .brand span {
+        font-size: 1.5rem;
+    }
+
+    .brand i {
+        font-size: 2rem;
+    }
+
+    .welcome-text {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .eco-tip {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+    }
+
+    .eco-tip h6 {
+        font-size: 0.75rem;
+    }
+
+    .eco-tip p {
+        font-size: 0.8rem;
+    }
+
+    .features-list {
+        margin-top: 1.5rem;
+    }
+
+    .feature-item {
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-section {
+        max-width: none;
+        margin: 0;
+    }
+
+    .form-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+    }
+
+    .form-subtitle {
+        font-size: 0.9rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+    }
+
+    .form-control {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.9rem;
+        border-radius: 10px;
+    }
+
+    .btn-login {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        border-radius: 10px;
+        margin-top: 0.75rem;
+    }
+
+    .footer-text {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+    }
+
+    .footer-text small {
+        font-size: 0.75rem;
+    }
+
+    .surprise-element {
+        width: 45px;
+        height: 45px;
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .surprise-element i {
+        font-size: 1.2rem;
+    }
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN - TABLET
+   ============================================================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .login-card {
+        max-width: 700px;
+    }
+
+    .left-panel,
+    .right-panel {
+        padding: 2.5rem;
+    }
+
+    .brand span {
+        font-size: 2rem;
+    }
+
+    .brand i {
+        font-size: 2.75rem;
+    }
+
+    .eco-tip {
+        padding: 1.25rem;
+    }
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN - DESKTOP
+   ============================================================================ */
+
+@media (min-width: 1025px) {
+    .login-card {
+        max-width: 900px;
+    }
+
+    .left-panel,
+    .right-panel {
+        padding: 3rem 2.5rem;
+    }
+}

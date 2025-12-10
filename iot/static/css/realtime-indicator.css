@@ -1,0 +1,116 @@
+/* ============================================================================
+   REAL-TIME CONNECTION INDICATOR
+   ============================================================================ */
+
+.connection-status {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 999;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.connection-status i {
+    font-size: 0.6rem;
+    animation: pulse-dot 2s infinite;
+}
+
+.status-connected {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.status-connected i {
+    color: #10b981;
+}
+
+.status-disconnected {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-disconnected i {
+    color: #f59e0b;
+}
+
+.status-error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.status-error i {
+    color: #ef4444;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+/* Update flash indicator */
+.update-flash {
+    position: fixed;
+    top: 20px;
+    left: 200px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4361ee;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 998;
+}
+
+.update-flash.flash-active {
+    opacity: 1;
+    animation: flash 0.5s ease;
+}
+
+@keyframes flash {
+
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .connection-status {
+        top: 10px;
+        left: 10px;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .update-flash {
+        left: 150px;
+    }
+}

@@ -13,9 +13,6 @@ def dashboard(request):
     # Get prepared data from centralized data_utils
     context = data_utils.get_dashboard_data_dict()
     
-    # Check if welcome message should be shown (only after login)
-    context['show_welcome'] = request.session.pop('show_welcome', False)
-    
     return render(request, 'iot/dashboard.html', context)
 
 

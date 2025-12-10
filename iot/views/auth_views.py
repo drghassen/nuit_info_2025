@@ -15,8 +15,6 @@ def login_view(request):
         
         if user is not None:
             login(request, user)
-            # Set flag to show welcome message
-            request.session['show_welcome'] = True
             messages.success(request, f'Bienvenue, {user.username} !')
             return redirect('dashboard')
         else:
