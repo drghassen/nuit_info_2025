@@ -297,68 +297,157 @@
                     <div class="col-md-3">
                         <a href="{% url 'hardware' %}" class="category-btn glass-card text-decoration-none d-block"
                             data-category="hardware">
-                            <i class="fas fa-microchip fa-2x mb-3 text-primary"></i>
-                            <h5 class="fw-semibold text-light">Matériel</h5>
-                            <small class="text-light opacity-75">CPU • RAM • Batterie</small>
+                            <div class="category-icon-wrapper mb-3">
+                                <i class="fas fa-microchip fa-2x text-primary"></i>
+                            </div>
+                            <h5 class="fw-semibold text-light mb-2">Matériel</h5>
+                            <div class="category-tags">
+                                <span class="category-tag">CPU</span>
+                                <span class="category-tag">RAM</span>
+                                <span class="category-tag">Batterie</span>
+                            </div>
+                            <div class="category-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
                         </a>
                     </div>
                     <div class="col-md-3">
                         <a href="{% url 'energy' %}" class="category-btn glass-card text-decoration-none d-block"
                             data-category="energy">
-                            <i class="fas fa-bolt fa-2x mb-3 text-warning"></i>
-                            <h5 class="fw-semibold text-light">Énergie</h5>
-                            <small class="text-light opacity-75">Puissance • Température</small>
+                            <div class="category-icon-wrapper mb-3">
+                                <i class="fas fa-bolt fa-2x text-warning"></i>
+                            </div>
+                            <h5 class="fw-semibold text-light mb-2">Énergie</h5>
+                            <div class="category-tags">
+                                <span class="category-tag">Puissance</span>
+                                <span class="category-tag">Temp</span>
+                            </div>
+                            <div class="category-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
                         </a>
                     </div>
                     <div class="col-md-3">
                         <a href="{% url 'network' %}" class="category-btn glass-card text-decoration-none d-block"
                             data-category="network">
-                            <i class="fas fa-wifi fa-2x mb-3 text-info"></i>
-                            <h5 class="fw-semibold text-light">Réseau</h5>
-                            <small class="text-light opacity-75">Requêtes • Cloud</small>
+                            <div class="category-icon-wrapper mb-3">
+                                <i class="fas fa-wifi fa-2x text-info"></i>
+                            </div>
+                            <h5 class="fw-semibold text-light mb-2">Réseau</h5>
+                            <div class="category-tags">
+                                <span class="category-tag">Requêtes</span>
+                                <span class="category-tag">Cloud</span>
+                            </div>
+                            <div class="category-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
                         </a>
                     </div>
                     <div class="col-md-3">
                         <a href="{% url 'scores' %}" class="category-btn glass-card text-decoration-none d-block"
                             data-category="scores">
-                            <i class="fas fa-chart-bar fa-2x mb-3 text-success"></i>
-                            <h5 class="fw-semibold text-light">Scores Éco</h5>
-                            <small class="text-light opacity-75">Impact • Obsolescence</small>
+                            <div class="category-icon-wrapper mb-3">
+                                <i class="fas fa-chart-bar fa-2x text-success"></i>
+                            </div>
+                            <h5 class="fw-semibold text-light mb-2">Scores Éco</h5>
+                            <div class="category-tags">
+                                <span class="category-tag">Impact</span>
+                                <span class="category-tag">Green</span>
+                            </div>
+                            <div class="category-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
                         </a>
                     </div>
                 </div>
                 <!-- Métriques principales -->
                 <div class="row g-4 mb-5">
                     <div class="col-lg-3 col-md-6">
-                        <div class="glass-card p-4 text-center metric-card-clickable"
-                            data-navigate="{% url 'hardware' %}" style="cursor: pointer; transition: all 0.3s ease;">
-                            <i class="fas fa-microchip fa-2x text-primary mb-3"></i>
-                            <p class="mb-1 opacity-75">CPU Moyen</p>
-                            <h3 class="metric-big text-primary" id="avg-cpu">--%</h3>
+                        <div class="glass-card metric-card-clickable" data-navigate="{% url 'hardware' %}">
+                            <div class="metric-card-header">
+                                <div class="metric-icon-box metric-icon-primary">
+                                    <i class="fas fa-microchip"></i>
+                                </div>
+                                <div class="metric-trend trend-stable">
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                            </div>
+                            <div class="metric-card-body">
+                                <p class="metric-label">CPU Moyen</p>
+                                <h3 class="metric-value text-primary" id="avg-cpu">--%</h3>
+                                <div class="metric-progress">
+                                    <div class="metric-progress-bar bg-primary" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="metric-card-footer">
+                                <span class="metric-hint"><i class="fas fa-clock me-1"></i>Temps réel</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="glass-card p-4 text-center metric-card-clickable"
-                            data-navigate="{% url 'hardware' %}" style="cursor: pointer; transition: all 0.3s ease;">
-                            <i class="fas fa-memory fa-2x text-purple mb-3"></i>
-                            <p class="mb-1 opacity-75">RAM Moyenne</p>
-                            <h3 class="metric-big text-purple" id="avg-ram">--%</h3>
+                        <div class="glass-card metric-card-clickable" data-navigate="{% url 'hardware' %}">
+                            <div class="metric-card-header">
+                                <div class="metric-icon-box metric-icon-purple">
+                                    <i class="fas fa-memory"></i>
+                                </div>
+                                <div class="metric-trend trend-stable">
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                            </div>
+                            <div class="metric-card-body">
+                                <p class="metric-label">RAM Moyenne</p>
+                                <h3 class="metric-value text-purple" id="avg-ram">--%</h3>
+                                <div class="metric-progress">
+                                    <div class="metric-progress-bar bg-purple" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="metric-card-footer">
+                                <span class="metric-hint"><i class="fas fa-memory me-1"></i>Utilisation</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="glass-card p-4 text-center metric-card-clickable" data-navigate="{% url 'energy' %}"
-                            style="cursor: pointer; transition: all 0.3s ease;">
-                            <i class="fas fa-bolt fa-2x text-warning mb-3"></i>
-                            <p class="mb-1 opacity-75">Puissance</p>
-                            <h3 class="metric-big text-warning" id="avg-power">-- W</h3>
+                        <div class="glass-card metric-card-clickable" data-navigate="{% url 'energy' %}">
+                            <div class="metric-card-header">
+                                <div class="metric-icon-box metric-icon-warning">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div class="metric-trend trend-stable">
+                                    <i class="fas fa-minus"></i>
+                                </div>
+                            </div>
+                            <div class="metric-card-body">
+                                <p class="metric-label">Puissance</p>
+                                <h3 class="metric-value text-warning" id="avg-power">-- W</h3>
+                                <div class="metric-progress">
+                                    <div class="metric-progress-bar bg-warning" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="metric-card-footer">
+                                <span class="metric-hint"><i class="fas fa-plug me-1"></i>Consommation</span>
+                            </div>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">
-                        <div class="glass-card p-4 text-center metric-card-clickable" data-navigate="{% url 'scores' %}"
-                            style="cursor: pointer; transition: all 0.3s ease;">
-                            <i class="fas fa-leaf fa-2x text-success mb-3"></i>
-                            <p class="mb-1 opacity-75">Score Éco Global</p>
-                            <h3 class="metric-big text-success" id="avg-eco">--</h3>
+                        <div class="glass-card metric-card-clickable" data-navigate="{% url 'scores' %}">
+                            <div class="metric-card-header">
+                                <div class="metric-icon-box metric-icon-success">
+                                    <i class="fas fa-leaf"></i>
+                                </div>
+                                <div class="metric-trend trend-up">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                            </div>
+                            <div class="metric-card-body">
+                                <p class="metric-label">Score Éco Global</p>
+                                <h3 class="metric-value text-success" id="avg-eco">--</h3>
+                                <div class="metric-progress">
+                                    <div class="metric-progress-bar bg-success" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="metric-card-footer">
+                                <span class="metric-hint"><i class="fas fa-seedling me-1"></i>Écologique</span>
+                            </div>
                         </div>
                     </div>
                 </div>
