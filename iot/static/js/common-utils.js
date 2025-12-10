@@ -92,12 +92,12 @@ const SidebarManager = {
         if (window.innerWidth >= 992) {
             handleDesktop();
         } else {
-            setExpanded(true);
+            setExpanded(false);
         }
 
         window.addEventListener('resize', () => {
             if (window.innerWidth < 992) {
-                setExpanded(true);
+                setExpanded(false);
             }
         });
     }

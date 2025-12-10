@@ -22,7 +22,7 @@
     backdrop-filter: blur(14px);
     border-right: 1px solid rgba(255, 255, 255, 0.12);
     z-index: 1029;
-    transition: width 0.25s ease;
+    transition: width 0.25s ease, transform 0.25s ease;
     overflow-y: auto;
     overflow-x: hidden;
 }
